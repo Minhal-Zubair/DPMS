@@ -4,48 +4,6 @@ import { useEffect, useState } from "react";
 import { getAllLogs } from "../../services/applicationLogService";
 
 function AuditLogs() {
-  const dummyLogs = [
-    {
-      id: 1,
-      user: "Admin",
-      action: "Approved Application",
-      target: "DPMS-2026-001",
-      date: "20 Jul 2026",
-      time: "09:45 AM",
-    },
-    {
-      id: 2,
-      user: "Ali Hassan",
-      action: "Uploaded CNIC",
-      target: "Documents",
-      date: "20 Jul 2026",
-      time: "10:30 AM",
-    },
-    {
-      id: 3,
-      user: "Verifier",
-      action: "Rejected Application",
-      target: "DPMS-2026-005",
-      date: "19 Jul 2026",
-      time: "02:15 PM",
-    },
-    {
-      id: 4,
-      user: "Admin",
-      action: "Created User",
-      target: "Ahmed Raza",
-      date: "19 Jul 2026",
-      time: "11:00 AM",
-    },
-    {
-      id: 5,
-      user: "Admin",
-      action: "Updated Role",
-      target: "Fatima Noor",
-      date: "18 Jul 2026",
-      time: "04:20 PM",
-    },
-  ];
 
   const [logs, setLogs] = useState([]);
   const [search, setSearch] = useState("");
@@ -59,7 +17,6 @@ function AuditLogs() {
     try {
       setLoading(true);
       const response = await getAllLogs();
-      console.log(response.data);
       setLogs(response.data);
     } catch (error) {
       console.error(error);
@@ -68,15 +25,8 @@ function AuditLogs() {
     }
   };
 
-  const allLogs = [...dummyLogs, ...logs];
-
-  const filteredLogs = allLogs.filter((log) => {
-    const text =
-      `${log.user ?? ""}
-         ${log.action ?? ""}
-         ${log.target ?? ""}
-         ${log.actionBy ?? ""}
-         ${log.applicationId ?? ""}`.toLowerCase();
+  const filteredLogs = logs.filter((log) => {
+    const text = `${log.action ?? ""} ${log.actionBy ?? ""} ${log.applicationId ?? ""}`.toLowerCase();
     return text.includes(search.toLowerCase());
   });
 

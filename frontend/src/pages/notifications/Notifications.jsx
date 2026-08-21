@@ -21,53 +21,7 @@ function Notifications() {
       Later this will come from Spring Boot
   ====================================== */
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "Application Submitted",
-      message:
-        "Your application DPMS-2026-000001 has been submitted successfully.",
-      type: "success",
-      time: "10 Minutes Ago",
-      read: false,
-    },
-    {
-      id: 2,
-      title: "Documents Uploaded",
-      message:
-        "Your supporting documents have been uploaded successfully.",
-      type: "info",
-      time: "1 Hour Ago",
-      read: false,
-    },
-    {
-      id: 3,
-      title: "Application Under Review",
-      message:
-        "Your application is currently under verification.",
-      type: "pending",
-      time: "Yesterday",
-      read: true,
-    },
-    {
-      id: 4,
-      title: "Application Approved",
-      message:
-        "Congratulations! Your application has been approved.",
-      type: "approved",
-      time: "2 Days Ago",
-      read: false,
-    },
-    {
-      id: 5,
-      title: "Application Rejected",
-      message:
-        "Please upload a clearer CNIC image and resubmit.",
-      type: "rejected",
-      time: "5 Days Ago",
-      read: true,
-    },
-  ]);
+  const [notifications, setNotifications] = useState([]);
 
   const [dbNotifications, setDbNotifications] = useState([]);
 
@@ -83,10 +37,7 @@ function Notifications() {
       Filtered Notifications
   ====================================== */
 
-  const allNotifications = [
-    ...dbNotifications,
-    ...notifications
-  ];
+  const allNotifications = [...dbNotifications];
 
   const filteredNotifications = useMemo(() => {
 

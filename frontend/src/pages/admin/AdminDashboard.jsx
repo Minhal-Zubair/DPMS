@@ -119,24 +119,6 @@ function AdminDashboard() {
   ];
 
   /* ==========================================
-      Recent Activities
-  ========================================== */
-
-  const activities = [
-    "Ahmed uploaded CNIC documents.",
-
-    "Admin approved application DPMS-2026-001.",
-
-    "Fatima registered a new account.",
-
-    "New application submitted by Ali Hassan.",
-
-    "Admin rejected Electric Bike application.",
-
-    "Document verification completed.",
-  ];
-
-  /* ==========================================
       Status Badge Helper
   ========================================== */
 
@@ -162,36 +144,7 @@ function AdminDashboard() {
     }
   };
 
-  const allActivities = [
-    ...activities.map((item) => ({
-      description: item,
-      time: "",
-      static: true,
-    })),
-    ...dashboard.recentActivities,
-  ];
-  {
-    allActivities.map((activity, index) => (
-      <div key={index} className="activity-item">
-        <div className="activity-dot"></div>
 
-        <div>
-          <p style={{ margin: 0 }}>{activity.description}</p>
-
-          {activity.time && (
-            <small
-              style={{
-                color: "#9CA3AF",
-                fontSize: "12px",
-              }}
-            >
-              {activity.time}
-            </small>
-          )}
-        </div>
-      </div>
-    ));
-  }
   return (
     <>
       {/* Header */}
@@ -326,53 +279,38 @@ function AdminDashboard() {
         <div className="activity-card">
           <div className="card-title">
             <Activity size={22} />
-
             <h2>Recent Activities</h2>
           </div>
 
-          {/* Hardcoded Activities */}
-          {activities.map((activity, index) => (
-            <div key={`static-${index}`} className="activity-item">
-              <div className="activity-dot"></div>
-              <p>{activity}</p>
-            </div>
-          ))}
-
-          {/* Dynamic Activities */}
-          {dashboard.recentActivities.map((activity, index) => (
-            <div key={`dynamic-${index}`} className="activity-item">
-              <div className="activity-dot"></div>
-
-              <div>
-                <p style={{ margin: 0 }}>{activity.description}</p>
-
-                <small
-                  style={{
-                    color: "#9CA3AF",
-                    fontSize: "12px",
-                  }}
-                >
-                  {activity.time}
-                </small>
+          {dashboard.recentActivities.length === 0 ? (
+            <p style={{ color: "#9CA3AF", padding: "10px 0" }}>No recent activity yet.</p>
+          ) : (
+            dashboard.recentActivities.map((activity, index) => (
+              <div key={index} className="activity-item">
+                <div className="activity-dot"></div>
+                <div>
+                  <p style={{ margin: 0 }}>{activity.description}</p>
+                  {activity.time && (
+                    <small style={{ color: "#9CA3AF", fontSize: "12px" }}>
+                      {activity.time}
+                    </small>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
       {/* Bottom Summary */}
-
       <div className="summary-card">
         <div>
           <h2>Performance Summary</h2>
-
           <p>
-            This month your organization processed
-            <strong> 785 </strong>
-            applications with an approval rate of
-            <strong> 79% </strong>
-            and an average processing time of
-            <strong> 2.4 Days</strong>.
+            Total applications: <strong>{dashboard.totalApplications}</strong> &nbsp;|&nbsp;
+            Approved: <strong>{dashboard.approvedApplications}</strong> &nbsp;|&nbsp;
+            Pending: <strong>{dashboard.pendingApplications}</strong> &nbsp;|&nbsp;
+            Rejected: <strong>{dashboard.rejectedApplications}</strong>
           </p>
         </div>
       </div>

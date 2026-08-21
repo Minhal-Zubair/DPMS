@@ -103,6 +103,15 @@ function MyApplications() {
                     </button>
                     <button
                       onClick={() =>
+                        navigate("/applications/details", {
+                          state: { application: app },
+                        })
+                      }
+                    >
+                      Details
+                    </button>
+                    <button
+                      onClick={() =>
                         navigate("/applications/tracking", {
                           state: {
                             applicationId: app.id,
