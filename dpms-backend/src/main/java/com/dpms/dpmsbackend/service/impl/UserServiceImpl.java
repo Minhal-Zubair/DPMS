@@ -105,7 +105,8 @@ public class UserServiceImpl implements UserService {
                 token,
                 user.getUsername(),
                 user.getFirstName(),
-                user.getLastName()
+                user.getLastName(),
+                Long.valueOf(3).equals(user.getRoleId()) ? "ADMIN" : "USER"
         );
 
     }

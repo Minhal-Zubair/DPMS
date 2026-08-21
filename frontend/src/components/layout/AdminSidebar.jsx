@@ -1,5 +1,5 @@
 import "./AdminSidebar.css";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 import {
   LayoutDashboard,
@@ -13,39 +13,28 @@ import {
 } from "lucide-react";
 
 const adminMenuItems = [
-  {
-    name: "Dashboard",
-    path: "/admin/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    name: "Application Review",
-    path: "/admin/applications",
-    icon: ClipboardCheck,
-  },
-  {
-    name: "Manage Users",
-    path: "/admin/users",
-    icon: Users,
-  },
-  {
-    name: "Reports",
-    path: "/admin/reports",
-    icon: FileText,
-  },
-  {
-    name: "Audit Logs",
-    path: "/admin/audit-logs",
-    icon: CalendarDays,
-  },
-  {
-    name: "Settings",
-    path: "/admin/settings",
-    icon: Settings,
-  },
+  { name: "Dashboard",           path: "/admin/dashboard",   icon: LayoutDashboard },
+  { name: "Application Review",  path: "/admin/applications",icon: ClipboardCheck },
+  { name: "Manage Users",        path: "/admin/users",       icon: Users },
+  { name: "Reports",             path: "/admin/reports",     icon: FileText },
+  { name: "Audit Logs",          path: "/admin/audit-logs",  icon: CalendarDays },
+  { name: "Settings",            path: "/admin/settings",    icon: Settings },
 ];
 
 const AdminSidebar = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("username");
+    localStorage.removeItem("firstName");
+    localStorage.removeItem("lastName");
+    localStorage.removeItem("role");
+    localStorage.removeItem("lastApplicationId");
+    navigate("/login", { replace: true });
+  };
+
   return (
     <aside className="admin-sidebar">
       <div className="sidebar-logo">
@@ -56,7 +45,6 @@ const AdminSidebar = () => {
       <nav className="sidebar-nav">
         {adminMenuItems.map((item) => {
           const Icon = item.icon;
-
           return (
             <NavLink
               key={item.name}
@@ -73,7 +61,7 @@ const AdminSidebar = () => {
       </nav>
 
       <div className="sidebar-footer">
-        <button className="logout-btn">
+        <button className="logout-btn" onClick={handleLogout}>
           <LogOut size={20} />
           <span>Logout</span>
         </button>

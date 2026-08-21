@@ -36,6 +36,14 @@ function ProtectedRoute() {
   return token ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
+function AdminRoute() {
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+  if (!token) return <Navigate to="/login" replace />;
+  if (role !== "ADMIN") return <Navigate to="/user/dashboard" replace />;
+  return <Outlet />;
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -48,7 +56,9 @@ function AppRoutes() {
         path="/login"
         element={
           localStorage.getItem("token") ? (
-            <Navigate to="/user/dashboard" replace />
+            localStorage.getItem("role") === "ADMIN"
+              ? <Navigate to="/admin/dashboard" replace />
+              : <Navigate to="/user/dashboard" replace />
           ) : (
             <Login />
           )
@@ -95,7 +105,7 @@ function AppRoutes() {
 
       {/* ================= ADMIN ROUTES ================= */}
 
-      <Route element={<ProtectedRoute />}>
+      <Route element={<AdminRoute />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<AdminDashboard />} />
 

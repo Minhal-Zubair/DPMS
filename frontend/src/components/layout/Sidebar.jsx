@@ -83,7 +83,8 @@ function Sidebar() {
     localStorage.removeItem("username");
     localStorage.removeItem("firstName");
     localStorage.removeItem("lastName");
-
+    localStorage.removeItem("role");
+    localStorage.removeItem("lastApplicationId");
     navigate("/login", { replace: true });
   };
 

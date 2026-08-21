@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./NewApplication.css";
 import API from "../../api/axiosConfig";
 
 function NewApplication() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     cnic: "",
     productionDate: "",
@@ -128,7 +130,13 @@ function NewApplication() {
 
       console.log("Saved:", response.data);
 
-      alert("Application Submitted Successfully");
+      const newApplicationId = response.data.id;
+      localStorage.setItem("lastApplicationId", newApplicationId);
+
+      alert("Application submitted! Now upload your documents.");
+      navigate("/application/upload", {
+        state: { applicationId: newApplicationId },
+      });
     } catch (error) {
       console.log(error);
       alert("Failed to submit application");
