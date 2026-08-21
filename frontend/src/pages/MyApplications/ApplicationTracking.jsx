@@ -1,171 +1,171 @@
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getLogsByApplicationId } from "../../services/applicationLogService";
 import "./ApplicationTracking.css";
 
-function ApplicationTracking() {
+// Map raw action strings to human-readable titles
+const ACTION_LABELS = {
+  APPLICATION_SUBMITTED: "Application Submitted",
+  STATUS_CHANGED: "Status Updated",
+  DOCUMENT_UPLOADED: "Document Uploaded",
+  DOCUMENT_VERIFIED: "Document Verified",
+  DOCUMENT_REJECTED: "Document Rejected",
+  UNDER_REVIEW: "Under Review",
+  APPROVED: "Application Approved",
+  REJECTED: "Application Rejected",
+};
 
-  const tracking = [
-    {
-      id: 1,
-      title: "Application Submitted",
-      status: "completed",
-      officer: "System",
-      remarks: "Application has been submitted successfully.",
-      date: "20 Jul 2026",
-      time: "09:15 AM"
-    },
-    {
-      id: 2,
-      title: "Documents Verified",
-      status: "completed",
-      officer: "Documentation Officer",
-      remarks: "All required documents verified.",
-      date: "20 Jul 2026",
-      time: "10:45 AM"
-    },
-    {
-      id: 3,
-      title: "Under Review",
-      status: "active",
-      officer: "Credit Officer",
-      remarks: "Application is under detailed review.",
-      date: "21 Jul 2026",
-      time: "11:20 AM"
-    },
-    {
-      id: 4,
-      title: "Manager Approval",
-      status: "pending",
-      officer: "-",
-      remarks: "Waiting for manager approval.",
-      date: "--",
-      time: "--"
-    },
-    {
-      id: 5,
-      title: "Completed",
-      status: "pending",
-      officer: "-",
-      remarks: "Application process completed.",
-      date: "--",
-      time: "--"
+function formatDateTime(isoString) {
+  if (!isoString) return { date: "--", time: "--" };
+  const d = new Date(isoString);
+  const date = d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const time = d.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return { date, time };
+}
+
+function getStatusClass(index, total) {
+  if (index < total - 1) return "completed";
+  return "active";
+}
+
+function ApplicationTracking() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Accept application info passed via navigate state
+  const {
+    applicationId,
+    applicationNumber,
+    applicationStatus,
+  } = location.state || {};
+
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!applicationId) {
+      setError("No application selected. Please go back and choose one.");
+      setLoading(false);
+      return;
     }
-  ];
+
+    const fetchLogs = async () => {
+      try {
+        const response = await getLogsByApplicationId(applicationId);
+        setLogs(response.data);
+      } catch (err) {
+        console.error("Failed to load logs:", err);
+        setError("Could not load tracking data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLogs();
+  }, [applicationId]);
+
+  // Progress = percentage of logs vs max expected steps (5)
+  const MAX_STEPS = 5;
+  const progress = logs.length === 0
+    ? 0
+    : Math.min(Math.round((logs.length / MAX_STEPS) * 100), 100);
+
+  // Determine if application is fully closed
+  const isClosed =
+    applicationStatus === "Approved" || applicationStatus === "Rejected";
 
   return (
-
     <div className="tracking-page">
-
       <div className="tracking-header">
-
         <div>
-
           <h1>Application Tracking</h1>
-
-          <p>
-            Track your application's processing status.
-          </p>
-
+          <p>Track your application's processing status.</p>
         </div>
-
         <div className="tracking-number">
-
-          DPMS-2026-000001
-
+          {applicationNumber || "—"}
         </div>
-
       </div>
 
+      {/* Progress bar */}
       <div className="progress-card">
-
         <div className="progress-info">
-
           <h3>Overall Progress</h3>
-
-          <span>60%</span>
-
+          <span>{isClosed ? "100%" : `${progress}%`}</span>
         </div>
-
         <div className="progress-bar">
-
           <div
             className="progress-fill"
-            style={{ width: "60%" }}
-          ></div>
-
+            style={{ width: isClosed ? "100%" : `${progress}%` }}
+          />
         </div>
-
       </div>
 
-      <div className="timeline">
+      {/* Timeline */}
+      {loading && <p style={{ padding: "20px" }}>Loading timeline…</p>}
 
-        {tracking.map((item) => (
+      {error && (
+        <div style={{ padding: "20px", color: "#dc2626" }}>{error}</div>
+      )}
 
-          <div
-            className={`timeline-item ${item.status}`}
-            key={item.id}
-          >
+      {!loading && !error && logs.length === 0 && (
+        <div style={{ padding: "20px", color: "#64748b" }}>
+          No activity recorded yet for this application.
+        </div>
+      )}
 
-            <div className="timeline-dot"></div>
+      {!loading && !error && logs.length > 0 && (
+        <div className="timeline">
+          {logs.map((log, index) => {
+            const { date, time } = formatDateTime(log.actionTime);
+            const statusClass = isClosed
+              ? "completed"
+              : getStatusClass(index, logs.length);
+            const label =
+              ACTION_LABELS[log.action] || log.action.replace(/_/g, " ");
 
-            <div className="timeline-content">
-
-              <div className="timeline-top">
-
-                <h3>{item.title}</h3>
-
-                <span className={`badge ${item.status}`}>
-
-                  {item.status.toUpperCase()}
-
-                </span>
-
+            return (
+              <div
+                className={`timeline-item ${statusClass}`}
+                key={log.id}
+              >
+                <div className="timeline-dot" />
+                <div className="timeline-content">
+                  <div className="timeline-top">
+                    <h3>{label}</h3>
+                    <span className={`badge ${statusClass}`}>
+                      {statusClass.toUpperCase()}
+                    </span>
+                  </div>
+                  {log.description && (
+                    <p>
+                      <strong>Details:</strong> {log.description}
+                    </p>
+                  )}
+                  <small>
+                    {date} • {time}
+                  </small>
+                </div>
               </div>
-
-              <p>
-
-                <strong>Officer:</strong> {item.officer}
-
-              </p>
-
-              <p>
-
-                <strong>Remarks:</strong> {item.remarks}
-
-              </p>
-
-              <small>
-
-                {item.date} • {item.time}
-
-              </small>
-
-            </div>
-
-          </div>
-
-        ))}
-
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="tracking-buttons">
-
-        <button className="back-btn">
-
+        <button className="back-btn" onClick={() => navigate(-1)}>
           Back
-
         </button>
-
-        <button className="download-btn">
-
-          Download Timeline
-
-        </button>
-
       </div>
-
     </div>
-
   );
-
 }
 
 export default ApplicationTracking;

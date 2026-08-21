@@ -5,4 +5,5 @@ import java.util.List;
 public interface ApplicationLogRepository
         extends JpaRepository<ApplicationLog, Long> {
     List<ApplicationLog> findAllByOrderByActionTimeDesc();
+    List<ApplicationLog> findByApplicationIdOrderByActionTimeAsc(Long applicationId);
 }

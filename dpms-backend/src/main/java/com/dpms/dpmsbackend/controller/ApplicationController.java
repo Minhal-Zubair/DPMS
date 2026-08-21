@@ -19,12 +19,10 @@ public class ApplicationController {
     }
     @PostMapping
     public ResponseEntity<Application> create(
-            @RequestBody ApplicationRequest request
+            @RequestBody ApplicationRequest request,
+            @RequestParam Long userId
     ) {
-
-        // Temporary user id
-        Application saved = service.createApplication(request, 6L);
-
+        Application saved = service.createApplication(request, userId);
         return ResponseEntity.ok(saved);
     }
 

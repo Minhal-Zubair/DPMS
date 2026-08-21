@@ -14,4 +14,5 @@ public interface ApplicationLogService {
             String description
     );
     List<ApplicationLog> getAllLogs();
+    List<ApplicationLog> getLogsByApplicationId(Long applicationId);
 }

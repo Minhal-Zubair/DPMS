@@ -112,19 +112,17 @@ function NewApplication() {
     if (!validate()) return;
 
     try {
+      const userId = localStorage.getItem("userId");
+
       const applicationData = {
         cnic: formData.cnic.replaceAll("-", ""),
-
         productionDate: formData.productionDate,
-
         productId: formData.productId,
-
         remarks: formData.remarks,
       };
 
       const response = await API.post(
-        "/applications",
-
+        `/applications?userId=${userId}`,
         applicationData,
       );
 
@@ -133,7 +131,6 @@ function NewApplication() {
       alert("Application Submitted Successfully");
     } catch (error) {
       console.log(error);
-
       alert("Failed to submit application");
     }
   };

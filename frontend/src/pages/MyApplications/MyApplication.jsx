@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { getUserApplications } from "../../services/applicationService";
 import "./MyApplications.css";
 
 function MyApplications() {
   const [selectedApplication, setSelectedApplication] = useState(null);
+  const navigate = useNavigate();
 
   const userId = localStorage.getItem("userId");
 
@@ -94,9 +97,22 @@ function MyApplications() {
                       : "-"}
                   </td>
 
-                  <td>
+                  <td style={{ display: "flex", gap: "8px" }}>
                     <button onClick={() => setSelectedApplication(app)}>
                       View
+                    </button>
+                    <button
+                      onClick={() =>
+                        navigate("/applications/tracking", {
+                          state: {
+                            applicationId: app.id,
+                            applicationNumber: app.applicationNumber,
+                            applicationStatus: app.status,
+                          },
+                        })
+                      }
+                    >
+                      Track
                     </button>
                   </td>
                 </tr>

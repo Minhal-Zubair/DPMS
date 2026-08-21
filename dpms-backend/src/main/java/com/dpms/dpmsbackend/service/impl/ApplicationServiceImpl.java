@@ -5,6 +5,7 @@ import com.dpms.dpmsbackend.entity.Application;
 import com.dpms.dpmsbackend.entity.Product;
 import com.dpms.dpmsbackend.entity.User;
 import com.dpms.dpmsbackend.repository.ApplicationRepository;
+import com.dpms.dpmsbackend.service.ApplicationLogService;
 import com.dpms.dpmsbackend.service.ApplicationService;
 import com.dpms.dpmsbackend.repository.UserRepository;
 import com.dpms.dpmsbackend.repository.ProductRepository;
@@ -20,14 +21,18 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final ApplicationRepository repository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final ApplicationLogService logService;
+
     public ApplicationServiceImpl(
             ApplicationRepository repository,
             UserRepository userRepository,
-            ProductRepository productRepository
+            ProductRepository productRepository,
+            ApplicationLogService logService
     ){
         this.repository = repository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
+        this.logService = logService;
     }
 
     @Override
@@ -67,8 +72,16 @@ public class ApplicationServiceImpl implements ApplicationService {
                 Application.Status.Submitted
         );
 
+        Application saved = repository.save(application);
 
-        return repository.save(application);
+        logService.saveLog(
+                saved.getId(),
+                userId,
+                "APPLICATION_SUBMITTED",
+                "Application submitted successfully."
+        );
+
+        return saved;
 
     }
 
@@ -217,16 +230,19 @@ public class ApplicationServiceImpl implements ApplicationService {
                         .orElseThrow(() ->
                                 new RuntimeException("Application not found"));
 
-        application.setStatus(
+        Application.Status newStatus =
+                Application.Status.valueOf(status.replace(" ", "_"));
 
-                Application.Status.valueOf(
-                        status.replace(" ", "_")
-                )
-
-        );
+        application.setStatus(newStatus);
 
         repository.save(application);
 
+        logService.saveLog(
+                applicationId,
+                null,
+                "STATUS_CHANGED",
+                "Application status updated to: " + newStatus.name().replace("_", " ")
+        );
     }
     @Override
     public ApplicationDetailsDTO getApplication(Long id) {

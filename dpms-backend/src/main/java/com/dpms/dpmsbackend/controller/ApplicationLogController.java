@@ -17,4 +17,11 @@ public class ApplicationLogController {
     public List<ApplicationLog> getAllLogs() {
         return applicationLogService.getAllLogs();
     }
+
+    @GetMapping("/{applicationId}")
+    public List<ApplicationLog> getLogsByApplicationId(
+            @PathVariable Long applicationId
+    ) {
+        return applicationLogService.getLogsByApplicationId(applicationId);
+    }
 }

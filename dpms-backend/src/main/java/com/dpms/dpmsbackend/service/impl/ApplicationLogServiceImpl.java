@@ -43,4 +43,9 @@ public class ApplicationLogServiceImpl
     public List<ApplicationLog> getAllLogs() {
         return repository.findAllByOrderByActionTimeDesc();
     }
+
+    @Override
+    public List<ApplicationLog> getLogsByApplicationId(Long applicationId) {
+        return repository.findByApplicationIdOrderByActionTimeAsc(applicationId);
+    }
 }
