@@ -1,0 +1,381 @@
+/* ==========================================
+   DPMS GLOBAL CSS
+   Enterprise Light / Dark Theme Support
+========================================== */
+
+
+/* =========================
+   IMPORT THEME VARIABLES
+========================= */
+
+@import "./themes.css";
+
+
+
+/* =========================
+   CSS RESET
+========================= */
+
+*{
+
+    margin:0;
+
+    padding:0;
+
+    box-sizing:border-box;
+
+    font-family:
+    "Inter",
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+}
+
+
+
+html{
+
+    scroll-behavior:smooth;
+
+}
+
+
+
+body{
+
+
+    min-height:100vh;
+
+
+    background:
+    var(--bg-primary);
+
+
+    color:
+    var(--text-primary);
+
+
+    transition:
+
+    background-color .3s ease,
+
+    color .3s ease;
+
+
+}
+
+
+
+/* =========================
+   LINKS
+========================= */
+
+
+a{
+
+
+    text-decoration:none;
+
+    color:inherit;
+
+
+}
+
+
+
+
+/* =========================
+   BUTTON RESET
+========================= */
+
+
+button{
+
+
+    border:none;
+
+    outline:none;
+
+    cursor:pointer;
+
+
+    font-family:inherit;
+
+
+}
+
+
+
+/* =========================
+   INPUTS
+========================= */
+
+
+input,
+textarea,
+select{
+
+
+    font-family:inherit;
+
+
+    background:
+    var(--card-bg);
+
+
+    color:
+    var(--text-primary);
+
+
+    border:
+
+    1px solid var(--border-color);
+
+
+    transition:.3s;
+
+
+}
+
+
+
+input:focus,
+textarea:focus,
+select:focus{
+
+
+    outline:none;
+
+
+    border-color:
+    var(--primary-color);
+
+
+}
+
+
+
+/* =========================
+   SCROLLBAR
+========================= */
+
+
+::-webkit-scrollbar{
+
+
+    width:8px;
+
+
+}
+
+
+
+::-webkit-scrollbar-track{
+
+
+    background:
+    var(--bg-primary);
+
+
+}
+
+
+
+::-webkit-scrollbar-thumb{
+
+
+    background:
+    var(--border-color);
+
+
+    border-radius:10px;
+
+
+}
+
+
+
+
+
+/* =========================
+   GLOBAL CONTAINER
+========================= */
+
+
+.container{
+
+
+    width:100%;
+
+
+    max-width:1400px;
+
+
+    margin:auto;
+
+
+    padding:20px;
+
+
+}
+
+
+
+
+
+/* =========================
+   CARDS
+========================= */
+
+
+.card{
+
+
+    background:
+    var(--card-bg);
+
+
+    border:
+
+    1px solid var(--border-color);
+
+
+    border-radius:16px;
+
+
+    box-shadow:
+
+    var(--shadow);
+
+
+    color:
+
+    var(--text-primary);
+
+
+    transition:
+
+    background .3s ease,
+
+    color .3s ease,
+
+    border .3s ease;
+
+
+}
+
+
+
+
+
+/* =========================
+   PRIMARY BUTTON
+========================= */
+
+
+.btn-primary{
+
+
+    background:
+
+    var(--primary-color);
+
+
+    color:white;
+
+
+    padding:
+
+    10px 20px;
+
+
+    border-radius:10px;
+
+
+    transition:.3s;
+
+
+}
+
+
+
+.btn-primary:hover{
+
+
+    opacity:.85;
+
+
+}
+
+
+
+
+
+/* =========================
+   TEXT UTILITIES
+========================= */
+
+
+.text-muted{
+
+
+    color:
+
+    var(--text-secondary);
+
+
+}
+
+
+
+
+
+/* =========================
+   PAGE WRAPPER
+========================= */
+
+
+.page{
+
+
+    min-height:100vh;
+
+
+    background:
+
+    var(--bg-primary);
+
+
+    color:
+
+    var(--text-primary);
+
+
+    transition:.3s;
+
+
+}
+
+
+
+
+
+/* =========================
+   THEME TRANSITION
+========================= */
+
+
+*{
+
+
+    transition:
+
+    background-color .25s ease,
+
+    border-color .25s ease,
+
+    color .25s ease;
+
+
+}

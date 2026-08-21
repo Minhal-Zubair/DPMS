@@ -1,0 +1,88 @@
+.audit-page{
+    padding:30px;
+}
+
+.audit-header{
+    margin-bottom:25px;
+}
+
+.audit-header h1{
+    margin:0;
+    font-size:32px;
+}
+
+.audit-header p{
+    color:#6b7280;
+    margin-top:8px;
+}
+
+.audit-search{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:white;
+    width:320px;
+    padding:12px 16px;
+    border-radius:10px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    margin-bottom:25px;
+}
+
+.audit-search input{
+    border:none;
+    outline:none;
+    width:100%;
+    font-size:15px;
+}
+
+.audit-table{
+    background:white;
+    border-radius:12px;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.audit-table table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.audit-table th{
+    background:#1E3A8A;
+    color:white;
+    padding:15px;
+}
+
+.audit-table td{
+    padding:15px;
+    border-bottom:1px solid #eee;
+}
+
+.audit-table tr:hover{
+    background:#f9fafb;
+}
+
+.user-cell{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.audit-summary{
+    margin-top:35px;
+    background:white;
+    border-radius:12px;
+    padding:25px;
+    display:flex;
+    align-items:center;
+    gap:20px;
+    box-shadow:0 10px 20px rgba(0,0,0,.08);
+}
+
+.audit-summary h2{
+    margin-bottom:8px;
+}
+
+.audit-summary p{
+    color:#6b7280;
+}

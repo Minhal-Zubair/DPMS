@@ -1,0 +1,99 @@
+/* ===========================
+   Admin Sidebar
+=========================== */
+
+.admin-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background: #111827;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+
+/* ===========================
+   Logo
+=========================== */
+
+.sidebar-logo {
+  padding: 25px;
+  border-bottom: 1px solid #374151;
+}
+
+.sidebar-logo h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.sidebar-logo p {
+  margin-top: 5px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* ===========================
+   Navigation
+=========================== */
+
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 15px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  color: #d1d5db;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  transition: 0.3s;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.sidebar-link:hover {
+  background: #1f2937;
+  color: white;
+}
+
+.sidebar-link.active {
+  background: #2563eb;
+  color: white;
+}
+
+/* ===========================
+   Logout
+=========================== */
+
+.sidebar-footer {
+  padding: 20px;
+}
+
+.logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #d1d5db;
+  cursor: pointer;
+  font-size: 15px;
+  transition: 0.3s;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
+  color: white;
+}

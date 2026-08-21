@@ -1,0 +1,27 @@
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Java
+target/
+*.class
+
+# Build files
+dist/
+build/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

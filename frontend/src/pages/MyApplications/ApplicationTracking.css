@@ -1,0 +1,461 @@
+/* ==========================================
+   APPLICATION TRACKING
+   DPMS Enterprise Theme
+========================================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+.tracking-page{
+
+    min-height:100vh;
+
+    padding:40px;
+
+    background:
+    radial-gradient(circle at top right,#dcecff 0%,transparent 35%),
+    radial-gradient(circle at bottom left,#d8e8ff 0%,transparent 40%),
+    #f4f8fc;
+
+    animation:fadePage .6s ease;
+}
+
+/*================================*/
+
+.tracking-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:35px;
+}
+
+.tracking-header h1{
+
+    font-size:34px;
+
+    color:#183153;
+
+    font-weight:700;
+}
+
+.tracking-header p{
+
+    margin-top:8px;
+
+    color:#64748b;
+
+    font-size:15px;
+}
+
+.tracking-number{
+
+    padding:14px 24px;
+
+    border-radius:15px;
+
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+
+    color:#fff;
+
+    font-weight:600;
+
+    box-shadow:
+
+    0 15px 35px rgba(37,99,235,.30);
+}
+
+/*================================*/
+
+.progress-card{
+
+    background:white;
+
+    padding:25px;
+
+    border-radius:18px;
+
+    margin-bottom:35px;
+
+    box-shadow:
+
+    0 15px 35px rgba(15,23,42,.08);
+}
+
+.progress-info{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:18px;
+}
+
+.progress-info h3{
+
+    color:#183153;
+}
+
+.progress-info span{
+
+    font-size:20px;
+
+    font-weight:700;
+
+    color:#2563eb;
+}
+
+.progress-bar{
+
+    width:100%;
+
+    height:14px;
+
+    background:#dbeafe;
+
+    border-radius:30px;
+
+    overflow:hidden;
+}
+
+.progress-fill{
+
+    height:100%;
+
+    background:linear-gradient(90deg,#2563eb,#3b82f6);
+
+    border-radius:30px;
+
+    animation:progressAnimation 1.5s ease;
+}
+
+/*================================*/
+
+.timeline{
+
+    position:relative;
+
+    margin-left:25px;
+}
+
+.timeline::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:14px;
+
+    top:0;
+
+    width:4px;
+
+    height:100%;
+
+    background:#dbeafe;
+
+    border-radius:20px;
+}
+
+/*================================*/
+
+.timeline-item{
+
+    position:relative;
+
+    display:flex;
+
+    gap:25px;
+
+    margin-bottom:35px;
+}
+
+.timeline-dot{
+
+    width:30px;
+
+    height:30px;
+
+    border-radius:50%;
+
+    z-index:2;
+
+    flex-shrink:0;
+}
+
+.timeline-content{
+
+    flex:1;
+
+    background:white;
+
+    padding:22px;
+
+    border-radius:16px;
+
+    box-shadow:
+
+    0 12px 30px rgba(15,23,42,.07);
+
+    transition:.35s;
+}
+
+.timeline-content:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:
+
+    0 20px 40px rgba(37,99,235,.12);
+}
+
+.timeline-top{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:15px;
+}
+
+.timeline-top h3{
+
+    color:#183153;
+}
+
+/*================================*/
+
+.completed .timeline-dot{
+
+    background:#16a34a;
+}
+
+.active .timeline-dot{
+
+    background:#2563eb;
+
+    animation:pulse 1.5s infinite;
+}
+
+.pending .timeline-dot{
+
+    background:#cbd5e1;
+}
+
+/*================================*/
+
+.badge{
+
+    padding:6px 14px;
+
+    border-radius:20px;
+
+    font-size:12px;
+
+    font-weight:600;
+
+    color:white;
+}
+
+.badge.completed{
+
+    background:#16a34a;
+}
+
+.badge.active{
+
+    background:#2563eb;
+}
+
+.badge.pending{
+
+    background:#94a3b8;
+}
+
+/*================================*/
+
+.timeline-content p{
+
+    margin-bottom:10px;
+
+    color:#475569;
+
+    line-height:1.6;
+}
+
+.timeline-content small{
+
+    color:#94a3b8;
+}
+
+/*================================*/
+
+.tracking-buttons{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:18px;
+
+    margin-top:40px;
+}
+
+.tracking-buttons button{
+
+    border:none;
+
+    padding:15px 30px;
+
+    border-radius:10px;
+
+    color:white;
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.35s;
+}
+
+.back-btn{
+
+    background:#64748b;
+}
+
+.back-btn:hover{
+
+    background:#475569;
+
+    transform:translateY(-3px);
+}
+
+.download-btn{
+
+    background:#2563eb;
+}
+
+.download-btn:hover{
+
+    background:#1d4ed8;
+
+    transform:translateY(-3px);
+
+    box-shadow:
+
+    0 15px 30px rgba(37,99,235,.30);
+}
+
+/*================================*/
+
+@keyframes pulse{
+
+    0%{
+
+        transform:scale(1);
+
+        box-shadow:0 0 0 0 rgba(37,99,235,.4);
+    }
+
+    70%{
+
+        transform:scale(1.1);
+
+        box-shadow:0 0 0 15px rgba(37,99,235,0);
+    }
+
+    100%{
+
+        transform:scale(1);
+
+        box-shadow:0 0 0 0 rgba(37,99,235,0);
+    }
+}
+
+@keyframes progressAnimation{
+
+    from{
+
+        width:0;
+    }
+
+}
+
+@keyframes fadePage{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(20px);
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+    }
+
+}
+
+/*================================*/
+
+@media(max-width:768px){
+
+.tracking-page{
+
+    padding:20px;
+}
+
+.tracking-header{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+    gap:20px;
+}
+
+.timeline{
+
+    margin-left:10px;
+}
+
+.timeline-item{
+
+    gap:15px;
+}
+
+.timeline-top{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+    gap:10px;
+}
+
+.tracking-buttons{
+
+    flex-direction:column;
+}
+
+.tracking-buttons button{
+
+    width:100%;
+}
+
+}

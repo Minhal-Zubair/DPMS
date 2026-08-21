@@ -1,0 +1,263 @@
+.document-types-page {
+  min-height: 100vh;
+  padding: 35px;
+  background: #f4f7fc;
+  animation: fadeIn .5s ease;
+}
+
+/* ===========================
+   Header
+=========================== */
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: #183153;
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.page-header p {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 15px;
+}
+
+/* ===========================
+   Card
+=========================== */
+
+.document-card {
+
+  background: white;
+
+  border-radius: 18px;
+
+  padding: 30px;
+
+  box-shadow:
+  0 12px 30px rgba(15,23,42,.08);
+
+  border:1px solid #E5E7EB;
+
+  transition:.3s;
+}
+
+.document-card:hover{
+
+  transform:translateY(-3px);
+
+  box-shadow:
+  0 20px 40px rgba(37,99,235,.12);
+}
+
+/* ===========================
+   Product Select
+=========================== */
+
+.top-section{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  margin-bottom:25px;
+
+  flex-wrap:wrap;
+
+  gap:20px;
+}
+
+.top-section label{
+
+  font-weight:600;
+
+  color:#183153;
+
+  font-size:15px;
+}
+
+.top-section select{
+
+  width:320px;
+
+  padding:13px 16px;
+
+  border-radius:10px;
+
+  border:1px solid #CBD5E1;
+
+  font-size:15px;
+
+  outline:none;
+
+  transition:.3s;
+}
+
+.top-section select:focus{
+
+  border-color:#2563EB;
+
+  box-shadow:0 0 0 4px rgba(37,99,235,.15);
+}
+
+/* ===========================
+   Table
+=========================== */
+
+table{
+
+  width:100%;
+
+  border-collapse:collapse;
+
+  overflow:hidden;
+
+  border-radius:14px;
+}
+
+thead{
+
+  background:#2563EB;
+
+  color:white;
+}
+
+thead th{
+
+  padding:18px;
+
+  text-align:left;
+
+  font-size:15px;
+
+  font-weight:600;
+}
+
+tbody td{
+
+  padding:18px;
+
+  border-bottom:1px solid #E5E7EB;
+
+  color:#334155;
+
+  font-size:15px;
+}
+
+tbody tr{
+
+  transition:.25s;
+}
+
+tbody tr:hover{
+
+  background:#EFF6FF;
+}
+
+/* ===========================
+   Instructions
+=========================== */
+
+.info-card{
+
+  margin-top:30px;
+
+  background:white;
+
+  border-radius:18px;
+
+  padding:28px;
+
+  border-left:6px solid #2563EB;
+
+  box-shadow:
+  0 10px 30px rgba(15,23,42,.08);
+}
+
+.info-card h3{
+
+  margin-top:0;
+
+  margin-bottom:18px;
+
+  color:#183153;
+}
+
+.info-card ul{
+
+  margin:0;
+
+  padding-left:22px;
+}
+
+.info-card li{
+
+  margin-bottom:12px;
+
+  color:#475569;
+
+  line-height:1.7;
+}
+
+/* ===========================
+   Animation
+=========================== */
+
+@keyframes fadeIn{
+
+  from{
+
+    opacity:0;
+
+    transform:translateY(20px);
+  }
+
+  to{
+
+    opacity:1;
+
+    transform:translateY(0);
+  }
+
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media(max-width:768px){
+
+.document-types-page{
+
+    padding:20px;
+}
+
+.top-section{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+}
+
+.top-section select{
+
+    width:100%;
+}
+
+table{
+
+    display:block;
+
+    overflow-x:auto;
+}
+
+}

@@ -1,0 +1,140 @@
+.manage-users {
+  padding: 30px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.page-header p {
+  color: #6b7280;
+  margin-top: 5px;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: .3s;
+}
+
+.add-btn:hover {
+  background: #1d4ed8;
+}
+
+.toolbar {
+  margin-bottom: 20px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  padding: 12px 15px;
+  border-radius: 8px;
+  width: 320px;
+  box-shadow: 0 5px 15px rgba(0,0,0,.08);
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  width: 100%;
+}
+
+.users-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,.08);
+}
+
+.users-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table th {
+  background: #1e3a8a;
+  color: white;
+  padding: 15px;
+}
+
+.users-table td {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.users-table tr:hover {
+  background: #f9fafb;
+}
+
+.role {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 30px;
+  color: white;
+  font-size: 13px;
+}
+
+.active {
+  background: #16a34a;
+}
+
+.pending {
+  background: #f59e0b;
+}
+
+.blocked {
+  background: #dc2626;
+}
+
+.edit-btn,
+.delete-btn {
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-right: 8px;
+  border-radius: 6px;
+}
+
+.edit-btn {
+  background: #2563eb;
+  color: white;
+}
+
+.delete-btn {
+  background: #dc2626;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #1d4ed8;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+}
