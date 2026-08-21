@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./NewApplication.css";
 import API from "../../api/axiosConfig";
@@ -17,21 +17,13 @@ function NewApplication() {
   });
 
   const [errors, setErrors] = useState({});
+  const [products, setProducts] = useState([]);
 
-  const products = [
-    {
-      id: 1,
-      name: "AGAC",
-    },
-    {
-      id: 2,
-      name: "DIG PERSONAL LOAN",
-    },
-    {
-      id: 3,
-      name: "ELECTRIC BIKE",
-    },
-  ];
+  useEffect(() => {
+    API.get("/products")
+      .then((res) => setProducts(res.data))
+      .catch((err) => console.error("Failed to load products", err));
+  }, []);
 
   const formatCNIC = (value) => {
     const numbers = value.replace(/\D/g, "").substring(0, 13);
@@ -152,7 +144,7 @@ function NewApplication() {
           <p>Create a new document processing application.</p>
         </div>
 
-        <div className="application-number">DPMS-2026-000001</div>
+        <div className="application-number">New Application</div>
       </div>
 
       <div className="card">
@@ -197,7 +189,7 @@ function NewApplication() {
 
               {products.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name}
+                  {p.productName}
                 </option>
               ))}
             </select>

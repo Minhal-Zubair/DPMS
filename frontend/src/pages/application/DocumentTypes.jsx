@@ -1,88 +1,64 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import "./DocumentTypes.css";
 
 function DocumentTypes() {
-  const products = ["AGAC", "DIG PERSONAL LOAN", "ELECTRIC BIKE"];
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [docsLoading, setDocsLoading] = useState(false);
 
-  const documentData = {
-    AGAC: [
-      {
-        name: "CNIC Front",
-        required: "Yes",
-        format: "PDF, JPG, PNG",
-        size: "5 MB",
-      },
-      {
-        name: "CNIC Back",
-        required: "Yes",
-        format: "PDF, JPG, PNG",
-        size: "5 MB",
-      },
-      {
-        name: "Photograph",
-        required: "Yes",
-        format: "JPG, PNG",
-        size: "2 MB",
-      },
-      {
-        name: "Salary Slip",
-        required: "Yes",
-        format: "PDF",
-        size: "10 MB",
-      },
-    ],
+  // Load products on mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get("http://localhost:8080/api/products");
+        setProducts(res.data);
+        if (res.data.length > 0) {
+          setSelectedProduct(res.data[0]);
+        }
+      } catch (err) {
+        console.error("Failed to load products", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
-    "DIG PERSONAL LOAN": [
-      {
-        name: "CNIC Front",
-        required: "Yes",
-        format: "PDF, JPG",
-        size: "5 MB",
-      },
-      {
-        name: "Bank Statement",
-        required: "Yes",
-        format: "PDF",
-        size: "10 MB",
-      },
-      {
-        name: "Salary Certificate",
-        required: "Yes",
-        format: "PDF",
-        size: "10 MB",
-      },
-    ],
+  // Load document requirements whenever selected product changes
+  useEffect(() => {
+    if (!selectedProduct) return;
+    const fetchDocs = async () => {
+      setDocsLoading(true);
+      try {
+        const res = await axios.get(
+          `http://localhost:8080/api/products/${selectedProduct.id}/documents`
+        );
+        setDocuments(res.data);
+      } catch (err) {
+        console.error("Failed to load document requirements", err);
+        setDocuments([]);
+      } finally {
+        setDocsLoading(false);
+      }
+    };
+    fetchDocs();
+  }, [selectedProduct]);
 
-    "ELECTRIC BIKE": [
-      {
-        name: "CNIC Front",
-        required: "Yes",
-        format: "PDF, JPG",
-        size: "5 MB",
-      },
-      {
-        name: "CNIC Back",
-        required: "Yes",
-        format: "PDF, JPG",
-        size: "5 MB",
-      },
-      {
-        name: "Driving License",
-        required: "No",
-        format: "PDF, JPG",
-        size: "5 MB",
-      },
-    ],
+  const handleProductChange = (e) => {
+    const product = products.find((p) => p.id === parseInt(e.target.value));
+    setSelectedProduct(product);
   };
 
-  const [selectedProduct, setSelectedProduct] = useState(products[0]);
+  if (loading) return <h2>Loading...</h2>;
 
   return (
     <div className="document-types-page">
       <div className="page-header">
         <div>
           <h1>Document Types</h1>
-
           <p>View required documents for each product.</p>
         </div>
       </div>
@@ -90,60 +66,70 @@ function DocumentTypes() {
       <div className="document-card">
         <div className="top-section">
           <label>Select Product</label>
-
           <select
-            value={selectedProduct}
-            onChange={(e) => setSelectedProduct(e.target.value)}
+            value={selectedProduct?.id || ""}
+            onChange={handleProductChange}
           >
             {products.map((product) => (
-              <option key={product} value={product}>
-                {product}
+              <option key={product.id} value={product.id}>
+                {product.productName}
               </option>
             ))}
           </select>
         </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Document</th>
-
-              <th>Required</th>
-
-              <th>Allowed Format</th>
-
-              <th>Maximum Size</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {documentData[selectedProduct].map((doc, index) => (
-              <tr key={index}>
-                <td>{doc.name}</td>
-
-                <td>{doc.required}</td>
-
-                <td>{doc.format}</td>
-
-                <td>{doc.size}</td>
+        {docsLoading ? (
+          <p style={{ padding: "20px", color: "#64748b" }}>Loading requirements...</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Document</th>
+                <th>Required</th>
+                <th>Allowed Format</th>
+                <th>Maximum Size</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {documents.length === 0 ? (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: "center", color: "#94a3b8" }}>
+                    No document requirements found for this product.
+                  </td>
+                </tr>
+              ) : (
+                documents.map((doc, index) => (
+                  <tr key={index}>
+                    <td>{doc.documentName}</td>
+                    <td>
+                      <span style={{
+                        padding: "3px 10px",
+                        borderRadius: "12px",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        background: doc.isRequired ? "#dcfce7" : "#f1f5f9",
+                        color: doc.isRequired ? "#16a34a" : "#64748b",
+                      }}>
+                        {doc.isRequired ? "Required" : "Optional"}
+                      </span>
+                    </td>
+                    <td>{doc.allowedFormats?.replace(/,/g, ", ")}</td>
+                    <td>{doc.maxSizeMb} MB</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       <div className="info-card">
         <h3>Important Instructions</h3>
-
         <ul>
           <li>Upload only clear scanned documents.</li>
-
           <li>Do not upload password protected PDF files.</li>
-
           <li>Only supported file formats are accepted.</li>
-
           <li>Ensure file size is within the allowed limit.</li>
-
           <li>All mandatory documents must be uploaded before submission.</li>
         </ul>
       </div>

@@ -115,26 +115,6 @@ const ApplicationReview = () => {
     }
   };
 
-
-  /*
-  ==========================================
-  Hardcoded Data (Keep for Reference)
-  ==========================================
-  */
-
-  const demoApplications = [
-    {
-      id: 1,
-      name: "Ali Ahmed",
-      email: "ali@gmail.com",
-      program: "Computer Science",
-      submitted: "20 July 2026",
-      status: "Pending"
-    }
-  ];
-
-
-
   /*
   ==========================================
   Load Applications From Database

@@ -14,7 +14,6 @@ import UserDashboard from "../pages/dashboard/UserDashboard";
 import NewApplication from "../pages/application/NewApplication";
 import DocumentUpload from "../pages/application/DocumentUpload";
 import DocumentTypes from "../pages/application/DocumentTypes";
-import ReviewApplication from "../pages/application/ReviewApplication";
 import MyApplications from "../pages/MyApplications/MyApplication";
 import ApplicationDetails from "../pages/MyApplications/ApplicationDetails";
 import ApplicationTracking from "../pages/MyApplications/ApplicationTracking";
@@ -81,8 +80,6 @@ function AppRoutes() {
             path="application/document-types"
             element={<DocumentTypes />}
           />
-
-          <Route path="application/review" element={<ApplicationReview />} />
 
           <Route path="applications" element={<MyApplications />} />
 
