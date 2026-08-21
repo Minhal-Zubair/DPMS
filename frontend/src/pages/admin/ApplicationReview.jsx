@@ -5,7 +5,10 @@ import {
   XCircle,
   Eye,
   Clock,
-  Pencil
+  Pencil,
+  FileText,
+  ShieldCheck,
+  ShieldX
 } from "lucide-react";
 
 import {
@@ -15,36 +18,42 @@ import {
   updateApplication,
 } from "../../services/applicationService";
 import { getProducts } from "../../services/productService";
+import axios from "axios";
 
 import "./ApplicationReview.css";
 
+const DOCUMENT_TYPE_NAMES = {
+  1: "CNIC Front",
+  2: "CNIC Back",
+  3: "Applicant Photo",
+  4: "Salary Slip",
+  5: "Bank Statement",
+  6: "Additional Document",
+};
 
 const ApplicationReview = () => {
 
   const [applications, setApplications] = useState([]);
-
   const [loading, setLoading] = useState(true);
-
   const [search, setSearch] = useState("");
-
   const [products, setProducts] = useState([]);
-
   const [selectedApplication, setSelectedApplication] = useState(null);
-
   const [message, setMessage] = useState("");
-
   const [messageType, setMessageType] = useState("");
-
   const [editApplication, setEditApplication] = useState(null);
-
   const [updating, setUpdating] = useState(false);
-
   const [editForm, setEditForm] = useState({
     cnic: "",
     productionDate: "",
     productId: "",
     remarks: "",
   });
+
+  // Document verification state
+  const [documents, setDocuments] = useState([]);
+  const [docsLoading, setDocsLoading] = useState(false);
+  const [rejectRemarks, setRejectRemarks] = useState({});
+  const [verifying, setVerifying] = useState({});
 
   const handleUpdateApplication = async () => {
   try {
@@ -54,25 +63,57 @@ const ApplicationReview = () => {
       editApplication.id,
       editForm
     );
-    // Reload latest applications
     await loadApplications();
-    // Close popup
     setEditApplication(null);
-    // Show success message
-    showMessage(
-      "Application updated successfully!",
-      "success"
-    );
+    showMessage("Application updated successfully!", "success");
   } catch (error) {
     console.error(error);
-    showMessage(
-      "Failed to update application!",
-      "error"
-    ); 
+    showMessage("Failed to update application!", "error");
   } finally {
     setUpdating(false);
   }
 };
+
+  const fetchDocuments = async (applicationId) => {
+    setDocsLoading(true);
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/documents/application/${applicationId}`
+      );
+      setDocuments(res.data);
+    } catch (err) {
+      console.error("Failed to load documents", err);
+      setDocuments([]);
+    } finally {
+      setDocsLoading(false);
+    }
+  };
+
+  const handleVerify = async (docId, verified) => {
+    const remarks = verified ? "" : (rejectRemarks[docId] || "");
+    if (!verified && !remarks.trim()) {
+      alert("Please enter a rejection reason before rejecting.");
+      return;
+    }
+    setVerifying((prev) => ({ ...prev, [docId]: true }));
+    try {
+      await axios.put(
+        `http://localhost:8080/api/documents/${docId}/verify`,
+        null,
+        { params: { verified, remarks } }
+      );
+      showMessage(
+        verified ? "Document verified!" : "Document rejected.",
+        verified ? "success" : "error"
+      );
+      fetchDocuments(selectedApplication.id);
+    } catch (err) {
+      console.error(err);
+      showMessage("Failed to update document status.", "error");
+    } finally {
+      setVerifying((prev) => ({ ...prev, [docId]: false }));
+    }
+  };
 
 
   /*
@@ -202,36 +243,14 @@ const ApplicationReview = () => {
   */
 
   const viewApplication = async (id) => {
-    console.log("VIEW BUTTON CLICKED ID:", id);
-
     try {
-
       const response = await getApplication(id);
-
-      console.log("VIEW API RESPONSE:", response.data);
-
-      console.log(
-        "Application Details:",
-        response.data
-      );
-
-
-      setSelectedApplication(
-        response.data
-      );
-
-
+      setSelectedApplication(response.data);
+      fetchDocuments(id);
     } catch (error) {
-
       console.error("VIEW ERROR:", error);
-
-      showMessage(
-        "Unable to load details",
-        "error"
-      );
-
+      showMessage("Unable to load details", "error");
     }
-
   };
 
   const editApplicationData = async (id) => {
@@ -755,222 +774,111 @@ const ApplicationReview = () => {
 
         {
           selectedApplication && (
-
             <div className="modal-overlay">
-
-
-              <div className="application-modal">
-
-
-                <h2>
-                  Application Details
-                </h2>
-
-
-
-                <p>
-                  <strong>
-                    Application #
-                  </strong>
-
-                  <br />
-
-                  {
-                    selectedApplication.applicationNumber
-                  }
-
-                </p>
-
-
-
-
-                <p>
-                  <strong>
-                    Applicant
-                  </strong>
-
-                  <br />
-
-                  {
-                    selectedApplication.applicant
-                  }
-
-                </p>
-
-
-
-
-                <p>
-                  <strong>
-                    Email
-                  </strong>
-
-                  <br />
-
-                  {
-                    selectedApplication.email
-                  }
-
-                </p>
-
-
-
-
-                <p>
-                  <strong>
-                    Phone
-                  </strong>
-
-                  <br />
-
-                  {
-                    selectedApplication.phone
-                  }
-
-                </p>
-
-
-
-
-                <p>
-
-                  <strong>
-                    CNIC
-                  </strong>
-
-                  <br />
-
-                  {
-                    selectedApplication.cnic
-                  }
-
-                </p>
-
-
-
-
-
-                <p>
-
-                  <strong>
-                    Product
-                  </strong>
-
-                  <br />
-
-                  {
-                    selectedApplication.product
-                  }
-
-                </p>
-
-
-
-
-
-                <p>
-
-                  <strong>
-                    Production Date
-                  </strong>
-
-                  <br />
-
-                  {
-                    selectedApplication.productionDate
-                  }
-
-                </p>
-
-
-
-
-
-                <p>
-
-                  <strong>
-                    Submitted Date
-                  </strong>
-
-                  <br />
-
-                  {
-                    selectedApplication.submittedDate
-                  }
-
-                </p>
-
-
-
-
-
-                <p>
-
-                  <strong>
-                    Status
-                  </strong>
-
-                  <br />
-
-                  {
-                    selectedApplication.status
-                  }
-
-                </p>
-
-
-
-
-
-                <p>
-
-                  <strong>
-                    Remarks
-                  </strong>
-
-                  <br />
-
-                  {
-                    selectedApplication.remarks
-                  }
-
-                </p>
-
-
-
-
+              <div className="application-modal" style={{ maxWidth: "680px", width: "90%", maxHeight: "85vh", overflowY: "auto" }}>
+                <h2>Application Details</h2>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "16px" }}>
+                  <p><strong>Application #</strong><br />{selectedApplication.applicationNumber}</p>
+                  <p><strong>Status</strong><br />{selectedApplication.status}</p>
+                  <p><strong>Applicant</strong><br />{selectedApplication.applicant}</p>
+                  <p><strong>CNIC</strong><br />{selectedApplication.cnic}</p>
+                  <p><strong>Email</strong><br />{selectedApplication.email}</p>
+                  <p><strong>Phone</strong><br />{selectedApplication.phone}</p>
+                  <p><strong>Product</strong><br />{selectedApplication.product}</p>
+                  <p><strong>Submitted</strong><br />{selectedApplication.submittedDate}</p>
+                </div>
+
+                {selectedApplication.remarks && (
+                  <p style={{ marginBottom: "16px" }}><strong>Remarks:</strong> {selectedApplication.remarks}</p>
+                )}
+
+                {/* Documents Section */}
+                <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: "16px" }}>
+                  <h3 style={{ marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <FileText size={18} /> Uploaded Documents
+                  </h3>
+
+                  {docsLoading && <p style={{ color: "#64748b" }}>Loading documents...</p>}
+
+                  {!docsLoading && documents.length === 0 && (
+                    <p style={{ color: "#94a3b8", fontStyle: "italic" }}>No documents uploaded yet.</p>
+                  )}
+
+                  {!docsLoading && documents.map((doc) => (
+                    <div key={doc.id} style={{
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "10px",
+                      padding: "14px",
+                      marginBottom: "12px",
+                      background: doc.verified === true ? "#f0fdf4" : doc.verified === false ? "#fef2f2" : "#f8fafc"
+                    }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                        <div>
+                          <strong>{DOCUMENT_TYPE_NAMES[doc.documentTypeId] || `Document #${doc.documentTypeId}`}</strong>
+                          <span style={{ marginLeft: "10px", color: "#64748b", fontSize: "13px" }}>{doc.originalName}</span>
+                        </div>
+                        <span style={{
+                          padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600,
+                          background: doc.verified === true ? "#dcfce7" : doc.verified === false ? "#fee2e2" : "#f1f5f9",
+                          color: doc.verified === true ? "#16a34a" : doc.verified === false ? "#dc2626" : "#64748b"
+                        }}>
+                          {doc.verified === true ? "✓ Verified" : doc.verified === false ? "✗ Rejected" : "Pending"}
+                        </span>
+                      </div>
+
+                      {doc.remarks && (
+                        <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "8px" }}>
+                          <strong>Note:</strong> {doc.remarks}
+                        </p>
+                      )}
+
+                      {doc.verified !== true && (
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "8px" }}>
+                          <input
+                            type="text"
+                            placeholder="Rejection reason (required to reject)"
+                            value={rejectRemarks[doc.id] || ""}
+                            onChange={(e) => setRejectRemarks((prev) => ({ ...prev, [doc.id]: e.target.value }))}
+                            style={{ flex: 1, padding: "7px 10px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "13px" }}
+                          />
+                          <button
+                            disabled={verifying[doc.id]}
+                            onClick={() => handleVerify(doc.id, true)}
+                            style={{ padding: "7px 14px", borderRadius: "6px", background: "#dcfce7", color: "#16a34a", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px" }}
+                          >
+                            ✓ Verify
+                          </button>
+                          <button
+                            disabled={verifying[doc.id]}
+                            onClick={() => handleVerify(doc.id, false)}
+                            style={{ padding: "7px 14px", borderRadius: "6px", background: "#fee2e2", color: "#dc2626", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px" }}
+                          >
+                            ✗ Reject
+                          </button>
+                        </div>
+                      )}
+
+                      {doc.verified === true && (
+                        <button
+                          onClick={() => handleVerify(doc.id, false)}
+                          style={{ marginTop: "8px", padding: "5px 12px", borderRadius: "6px", background: "#fee2e2", color: "#dc2626", border: "none", cursor: "pointer", fontSize: "13px" }}
+                        >
+                          Undo Verification
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
 
                 <button
-
-                  className="
-                mt-4
-                px-4
-                py-2
-                bg-blue-600
-                text-white
-                rounded-lg
-                hover:bg-blue-700
-                "
-
-                  onClick={() =>
-                    setSelectedApplication(null)
-                  }
-
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  onClick={() => { setSelectedApplication(null); setDocuments([]); }}
                 >
-
                   Close
-
                 </button>
-
-
-
-
               </div>
-
-
             </div>
-
-
           )
         }
 

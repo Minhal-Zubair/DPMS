@@ -90,19 +90,33 @@ public class DocumentController {
 
     }
 
+    @GetMapping("/application/{applicationId}")
+    public ResponseEntity<?> getDocumentsByApplication(
+            @PathVariable Long applicationId
+    ) {
+        return ResponseEntity.ok(
+                service.getDocuments(applicationId)
+        );
+    }
+
+    @PutMapping("/{id}/verify")
+    public ResponseEntity<?> verifyDocument(
+            @PathVariable Long id,
+            @RequestParam Boolean verified,
+            @RequestParam(required = false, defaultValue = "") String remarks
+    ) {
+        service.verifyDocument(id, verified, remarks);
+        return ResponseEntity.ok("Document " + (verified ? "verified" : "rejected"));
+    }
+
     @GetMapping("/{id}/view")
     public ResponseEntity<byte[]> viewDocument(
             @PathVariable Long id
     ) {
-
         Document document = service.getDocument(id);
-
         return ResponseEntity
                 .ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(document.getFileData());
     }
-
-
 }
-

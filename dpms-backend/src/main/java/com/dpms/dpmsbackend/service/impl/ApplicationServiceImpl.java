@@ -130,19 +130,13 @@ public class ApplicationServiceImpl implements ApplicationService {
         return repository.count();
 
     }
-
-
-
     @Override
     public long getApprovedApplications() {
 
         return repository.countByStatus(
                 Application.Status.Approved
         );
-
     }
-
-
 
     @Override
     public long getRejectedApplications() {
@@ -212,7 +206,9 @@ public class ApplicationServiceImpl implements ApplicationService {
                 );
             }
             dto.setSubmittedDate(
-                    app.getCreatedAt().format(formatter)
+                    app.getCreatedAt() != null
+                            ? app.getCreatedAt().format(formatter)
+                            : "-"
             );
             dto.setStatus(
                     app.getStatus().name().replace("_"," ")
@@ -303,7 +299,4 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
         return dto;
     }
-
-
-
 }

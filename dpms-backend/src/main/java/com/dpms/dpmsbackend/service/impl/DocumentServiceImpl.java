@@ -31,7 +31,8 @@ public class DocumentServiceImpl
 
     @Override
     public Document getDocument(Long id) {
-        return null;
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Document not found"));
     }
 
     @Override
@@ -98,11 +99,16 @@ public class DocumentServiceImpl
 
     @Override
     public List<Document> getDocuments(Long applicationId){
-
         return repository.findByApplicationId(applicationId);
-
     }
 
-
+    @Override
+    public void verifyDocument(Long documentId, Boolean verified, String remarks) {
+        Document doc = repository.findById(documentId)
+                .orElseThrow(() -> new RuntimeException("Document not found"));
+        doc.setVerified(verified);
+        doc.setRemarks(remarks);
+        repository.save(doc);
+    }
 
 }

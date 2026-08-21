@@ -11,7 +11,6 @@ public interface DocumentService {
 
     Document getDocument(Long id);
 
-
     void uploadDocument(
             Long applicationId,
             Long userId,
@@ -19,8 +18,7 @@ public interface DocumentService {
             MultipartFile file
     );
 
-
     List<?> getDocuments(Long applicationId);
 
-
+    void verifyDocument(Long documentId, Boolean verified, String remarks);
 }
