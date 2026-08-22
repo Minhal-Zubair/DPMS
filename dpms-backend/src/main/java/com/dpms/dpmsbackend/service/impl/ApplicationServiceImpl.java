@@ -5,6 +5,7 @@ import com.dpms.dpmsbackend.entity.Application;
 import com.dpms.dpmsbackend.entity.Product;
 import com.dpms.dpmsbackend.entity.User;
 import com.dpms.dpmsbackend.repository.ApplicationRepository;
+import com.dpms.dpmsbackend.service.ActivityLogService;
 import com.dpms.dpmsbackend.service.ApplicationLogService;
 import com.dpms.dpmsbackend.service.ApplicationService;
 import com.dpms.dpmsbackend.repository.UserRepository;
@@ -24,17 +25,20 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final ApplicationLogService logService;
+    private final ActivityLogService activityLogService;
 
     public ApplicationServiceImpl(
             ApplicationRepository repository,
             UserRepository userRepository,
             ProductRepository productRepository,
-            ApplicationLogService logService
+            ApplicationLogService logService,
+            ActivityLogService activityLogService
     ){
         this.repository = repository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.logService = logService;
+        this.activityLogService = activityLogService;
     }
 
     @Override
@@ -81,6 +85,13 @@ public class ApplicationServiceImpl implements ApplicationService {
                 userId,
                 "APPLICATION_SUBMITTED",
                 "Application submitted successfully."
+        );
+
+        activityLogService.log(
+                "APPLICATION_SUBMITTED",
+                "New application submitted",
+                userId,
+                saved.getId()
         );
 
         return saved;
@@ -269,6 +280,13 @@ public class ApplicationServiceImpl implements ApplicationService {
                 null,
                 "STATUS_CHANGED",
                 "Application status updated to: " + newStatus.name().replace("_", " ")
+        );
+
+        activityLogService.log(
+                "STATUS_CHANGED",
+                "Application status changed to " + newStatus.name().replace("_", " "),
+                null,
+                applicationId
         );
     }
     @Override

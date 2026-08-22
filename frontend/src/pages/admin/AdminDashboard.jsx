@@ -77,7 +77,17 @@ function AdminDashboard() {
 
   useEffect(() => {
     loadDashboard();
+    loadActivities();
   }, []);
+
+  const loadActivities = async () => {
+    try {
+      const res = await axios.get("http://localhost:8080/api/activities/recent");
+      setDashboard((prev) => ({ ...prev, recentActivities: res.data }));
+    } catch (err) {
+      console.error("Failed to load activities", err);
+    }
+  };
 
   const loadDashboard = async () => {
     try {

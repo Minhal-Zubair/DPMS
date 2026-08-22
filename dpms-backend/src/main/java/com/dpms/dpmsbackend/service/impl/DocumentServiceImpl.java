@@ -1,31 +1,27 @@
 package com.dpms.dpmsbackend.service.impl;
 
-
 import com.dpms.dpmsbackend.entity.Document;
 import com.dpms.dpmsbackend.repository.DocumentRepository;
+import com.dpms.dpmsbackend.service.ActivityLogService;
 import com.dpms.dpmsbackend.service.DocumentService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-
 import java.util.List;
 
-
-
 @Service
-public class DocumentServiceImpl
-        implements DocumentService {
-
+public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository repository;
-
-
+    private final ActivityLogService activityLogService;
 
     public DocumentServiceImpl(
-            DocumentRepository repository
+            DocumentRepository repository,
+            ActivityLogService activityLogService
     ){
-        this.repository=repository;
+        this.repository = repository;
+        this.activityLogService = activityLogService;
     }
 
 
@@ -109,6 +105,13 @@ public class DocumentServiceImpl
         doc.setVerified(verified);
         doc.setRemarks(remarks);
         repository.save(doc);
+
+        activityLogService.log(
+                verified ? "DOCUMENT_VERIFIED" : "DOCUMENT_REJECTED",
+                verified ? "Document verified" : "Document rejected: " + remarks,
+                doc.getUploadedBy(),
+                doc.getApplicationId()
+        );
     }
 
 }
