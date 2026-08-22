@@ -10,4 +10,6 @@ public class AdminApplicationDTO {
     private String product;
     private String submittedDate;
     private String status;
+    private Long daysInProgress;
+    private Boolean overdue;
 }

@@ -54,6 +54,7 @@ const ApplicationReview = () => {
   const [docsLoading, setDocsLoading] = useState(false);
   const [rejectRemarks, setRejectRemarks] = useState({});
   const [verifying, setVerifying] = useState({});
+  const [showOverdueOnly, setShowOverdueOnly] = useState(false);
 
   const handleUpdateApplication = async () => {
   try {
@@ -353,40 +354,17 @@ const ApplicationReview = () => {
 
   const filteredApplications =
     applications.filter((app) => {
-
-
-      const keyword =
-        search.toLowerCase();
-
-
-      return (
-
-        app.applicationNumber
-          ?.toLowerCase()
-          .includes(keyword)
-
-
-        ||
-
-        app.applicant
-          ?.toLowerCase()
-          .includes(keyword)
-
-
-        ||
-
-        app.product
-          ?.toLowerCase()
-          .includes(keyword)
-
+      const keyword = search.toLowerCase();
+      const matchesSearch = (
+        app.applicationNumber?.toLowerCase().includes(keyword)
+        || app.applicant?.toLowerCase().includes(keyword)
+        || app.product?.toLowerCase().includes(keyword)
       );
-
-
+      const matchesOverdue = showOverdueOnly ? app.overdue : true;
+      return matchesSearch && matchesOverdue;
     });
 
-
-
-  /*
+    /*
   ==========================================
   Dashboard Counts
   ==========================================
@@ -494,7 +472,7 @@ const ApplicationReview = () => {
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
 
 
-        {/* Search */}
+        {/* Search + SLA filter */}
 
         <div className="table-header">
           <div className="search-box"></div>
@@ -506,6 +484,22 @@ const ApplicationReview = () => {
               (e) => setSearch(e.target.value)
             }
           />
+          <button
+            onClick={() => setShowOverdueOnly(!showOverdueOnly)}
+            style={{
+              marginLeft: "12px",
+              padding: "8px 16px",
+              borderRadius: "8px",
+              border: "none",
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: "13px",
+              background: showOverdueOnly ? "#fee2e2" : "#f1f5f9",
+              color: showOverdueOnly ? "#dc2626" : "#64748b",
+            }}
+          >
+            🔴 Overdue ({applications.filter((a) => a.overdue).length})
+          </button>
         </div>
 
         <table className="w-full">
@@ -527,6 +521,9 @@ const ApplicationReview = () => {
                 Status
               </th>
               <th className="px-6 py-4 text-left">
+                Days
+              </th>
+              <th className="px-6 py-4 text-left">
                 Actions
               </th>
             </tr>
@@ -539,6 +536,7 @@ const ApplicationReview = () => {
                     <tr
                       key={app.id}
                       className="border-b hover:bg-gray-50"
+                      style={app.overdue ? { background: "#fff5f5" } : {}}
                     >
                       {/* Application Number */}
                       <td className="px-6 py-4">
@@ -586,7 +584,6 @@ const ApplicationReview = () => {
 
                       <td className="px-6 py-4">
 
-
                         <span
                           className={`status-badge ${statusStyle(app.status)}`}
                         >
@@ -596,6 +593,20 @@ const ApplicationReview = () => {
                         </span>
 
 
+                      </td>
+
+                      {/* SLA / Days */}
+                      <td className="px-6 py-4">
+                        <span style={{
+                          padding: "3px 10px",
+                          borderRadius: "12px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          background: app.overdue ? "#fee2e2" : app.daysInProgress > 3 ? "#fef3c7" : "#f0fdf4",
+                          color: app.overdue ? "#dc2626" : app.daysInProgress > 3 ? "#d97706" : "#16a34a",
+                        }}>
+                        {app.daysInProgress ?? 0}d {app.overdue ? "⚠ Overdue" : ""}
+                        </span>
                       </td>
 
 

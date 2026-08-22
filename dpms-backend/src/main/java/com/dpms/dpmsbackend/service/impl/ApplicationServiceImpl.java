@@ -12,6 +12,8 @@ import com.dpms.dpmsbackend.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import com.dpms.dpmsbackend.dto.ApplicationDetailsDTO;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -130,13 +132,19 @@ public class ApplicationServiceImpl implements ApplicationService {
         return repository.count();
 
     }
+
+
+
     @Override
     public long getApprovedApplications() {
 
         return repository.countByStatus(
                 Application.Status.Approved
         );
+
     }
+
+
 
     @Override
     public long getRejectedApplications() {
@@ -181,25 +189,33 @@ public class ApplicationServiceImpl implements ApplicationService {
             dto.setApplicationNumber(
                     app.getApplicationNumber()
             );
-            User user =
-                    userRepository.findById(app.getUserId())
-                            .orElse(null);
-            if(user!=null){
-                dto.setApplicant(
-                        user.getFirstName()+" "+user.getLastName()
-                );
-            }else{
+            if (app.getUserId() != null) {
+                User user =
+                        userRepository.findById(app.getUserId())
+                                .orElse(null);
+                if(user!=null){
+                    dto.setApplicant(
+                            user.getFirstName()+" "+user.getLastName()
+                    );
+                }else{
+                    dto.setApplicant("Unknown");
+                }
+            } else {
                 dto.setApplicant("Unknown");
             }
             dto.setCnic(app.getCnic());
-            Product product =
-                    productRepository.findById(app.getProductId())
-                            .orElse(null);
-            dto.setProduct(
-                    product==null?
-                            "N/A":
-                            product.getProductName()
-            );
+            if (app.getProductId() != null) {
+                Product product =
+                        productRepository.findById(app.getProductId())
+                                .orElse(null);
+                dto.setProduct(
+                        product==null?
+                                "N/A":
+                                product.getProductName()
+                );
+            } else {
+                dto.setProduct("N/A");
+            }
             if (app.getProductionDate() != null) {
                 dto.setProductionDate(
                         app.getProductionDate().toString()
@@ -213,6 +229,21 @@ public class ApplicationServiceImpl implements ApplicationService {
             dto.setStatus(
                     app.getStatus().name().replace("_"," ")
             );
+
+            // SLA calculation — count days since submission
+            boolean closed = app.getStatus() == Application.Status.Approved
+                    || app.getStatus() == Application.Status.Rejected;
+
+            long days = 0;
+            if (app.getCreatedAt() != null) {
+                LocalDateTime end = closed && app.getUpdatedAt() != null
+                        ? app.getUpdatedAt()
+                        : LocalDateTime.now();
+                days = ChronoUnit.DAYS.between(app.getCreatedAt(), end);
+            }
+            dto.setDaysInProgress(days);
+            dto.setOverdue(!closed && days > 5);
+
             list.add(dto);
         }
         return list;
@@ -299,4 +330,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
         return dto;
     }
+
+
+
 }
