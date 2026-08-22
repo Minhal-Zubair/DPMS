@@ -61,33 +61,15 @@ public class DocumentController {
         System.out.println("User ID: " + userId);
         System.out.println("Document Type ID: " + documentTypeId);
         System.out.println("File: " + file.getOriginalFilename());
-        try{
-
-//            System.out.println("File Name : " + file.getOriginalFilename());
-//            System.out.println("Size : " + file.getSize());
-//            System.out.println("Type : " + file.getContentType());
-//            byte[] base64Bytes = Base64.getEncoder().encode(file.getBytes());
-//            System.out.println(STR."file: \{Arrays.toString(base64Bytes)}");
-
-
-            service.uploadDocument(
+        service.uploadDocument(
                     applicationId,
                     userId,
                     documentTypeId,
                     file
             );
-        }catch(Exception ex){
-            System.out.println(ex);
-        }
-
-
-
-
-
-
         return "Uploaded successfully";
 
-
+    
     }
 
     @GetMapping("/application/{applicationId}")

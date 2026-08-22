@@ -14,5 +14,9 @@ public interface DocumentRepository
 
     List<Document> findByApplicationId(Long applicationId);
 
+    boolean existsByApplicationIdAndFileHash(Long applicationId, String fileHash);
+
+    boolean existsByApplicationIdAndDocumentTypeId(Long applicationId, Integer documentTypeId);
+
 
 }

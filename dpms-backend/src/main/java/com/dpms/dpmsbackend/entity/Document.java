@@ -42,6 +42,9 @@ public class Document {
     @Column(name="file_size")
     private Long fileSize;
 
+    @Column(name="file_hash", length = 64)
+    private String fileHash;
+
 
     @Column(name="uploaded_by")
     private Long uploadedBy;

@@ -8,6 +8,8 @@ import com.dpms.dpmsbackend.service.DocumentService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.List;
 
 @Service
@@ -31,6 +33,17 @@ public class DocumentServiceImpl implements DocumentService {
                 .orElseThrow(() -> new RuntimeException("Document not found"));
     }
 
+    // ── helpers ──────────────────────────────────────────────
+    private String sha256(byte[] bytes) {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(bytes);
+            return java.util.HexFormat.of().formatHex(hash);
+        } catch (Exception e) {
+            throw new RuntimeException("Hashing failed", e);
+        }
+    }
+
     @Override
     public void uploadDocument(
             Long applicationId,
@@ -38,59 +51,66 @@ public class DocumentServiceImpl implements DocumentService {
             Integer documentTypeId,
             MultipartFile file
     ){
-
         try {
-
-//            byte[] base64Bytes = Base64.getEncoder().encode(file.getBytes());
-
-            Document doc=new Document();
-
-
-            doc.setApplicationId(applicationId);
-
-            doc.setUploadedBy(userId);
-
-            doc.setDocumentTypeId(documentTypeId);
-
-
-            doc.setOriginalName(
-                    file.getOriginalFilename()
-            );
-
             byte[] bytes = file.getBytes();
 
-            System.out.println("======================");
-            System.out.println("FILE NAME : " + file.getOriginalFilename());
-            System.out.println("BYTE SIZE : " + bytes.length);
-            System.out.println("======================");
+            // 1. Quality check
+            if (bytes.length < 5_000) {
+                throw new RuntimeException(
+                    "File too small or corrupted (min 5KB). Upload a clear, readable document."
+                );
+            }
+            String contentType = file.getContentType();
+            if (contentType != null && contentType.startsWith("image/") && bytes.length < 30_000) {
+                throw new RuntimeException(
+                    "Image quality too low. Upload a higher-resolution scan (min 30KB)."
+                );
+            }
 
+            // 2. Duplicate file check (same bytes)
+            String hash = sha256(bytes);
+            if (repository.existsByApplicationIdAndFileHash(applicationId, hash)) {
+                throw new RuntimeException(
+                    "This exact file has already been uploaded for this application."
+                );
+            }
+
+            // 3. Duplicate slot check (same document type)
+            if (repository.existsByApplicationIdAndDocumentTypeId(applicationId, documentTypeId)) {
+                throw new RuntimeException(
+                    "A document of this type is already uploaded. Remove it before re-uploading."
+                );
+            }
+
+            // 4. Save
+            Document doc = new Document();
+            doc.setApplicationId(applicationId);
+            doc.setUploadedBy(userId);
+            doc.setDocumentTypeId(documentTypeId);
+            doc.setOriginalName(file.getOriginalFilename());
             doc.setFileData(bytes);
+            doc.setFileSize((long) bytes.length);
+            doc.setFileHash(hash);
 
-            doc.setFileSize(
-                    file.getSize()
+            System.out.println("======================" );
+            System.out.println("FILE: " + file.getOriginalFilename() + " | SIZE: " + bytes.length + " | HASH: " + hash);
+            System.out.println("======================");
+
+            repository.save(doc);
+
+            activityLogService.log(
+                "DOCUMENT_UPLOADED",
+                "Document uploaded: " + file.getOriginalFilename(),
+                userId,
+                applicationId
             );
 
-
-            Document saved = repository.save(doc);
-
-            System.out.println(
-                    "SAVED DOCUMENT ID : "
-                            + saved.getId()
-            );
-
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to upload document: " + e.getMessage());
         }
-        catch(Exception e){
-
-            e.printStackTrace();
-
-            throw new RuntimeException(e);
-
-        }
-
-
     }
-
-
 
 
     @Override

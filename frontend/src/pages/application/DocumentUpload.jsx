@@ -86,7 +86,13 @@ function DocumentUpload() {
       navigate("/applications");
     } catch (error) {
       console.error(error);
-      alert("Upload failed. Please try again.");
+      console.log("Error response:", error.response);
+      console.log("Error response data:", error.response?.data);
+      const msg = typeof error.response?.data === "string" && error.response.data.length > 0
+        ? error.response.data
+        : error.response?.data?.message
+        || "Upload failed. Please try again.";
+      alert(msg);
     } finally {
       setUploading(false);
     }
