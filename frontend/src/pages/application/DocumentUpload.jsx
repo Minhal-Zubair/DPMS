@@ -1,154 +1,202 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { UploadCloud, CheckCircle, XCircle, FileText } from "lucide-react";
 import "./DocumentUpload.css";
 
+// Fallback document slots if no product-specific requirements passed
+const DEFAULT_DOCS = [
+  { documentTypeId: 1, documentName: "CNIC Front",         isRequired: true,  allowedFormats: "JPG,PNG,PDF", maxSizeMb: 5 },
+  { documentTypeId: 2, documentName: "CNIC Back",          isRequired: true,  allowedFormats: "JPG,PNG,PDF", maxSizeMb: 5 },
+  { documentTypeId: 3, documentName: "Applicant Photograph",isRequired: true, allowedFormats: "JPG,PNG",     maxSizeMb: 5 },
+  { documentTypeId: 4, documentName: "Salary Slip",        isRequired: false, allowedFormats: "JPG,PNG,PDF", maxSizeMb: 5 },
+  { documentTypeId: 5, documentName: "Bank Statement",     isRequired: false, allowedFormats: "JPG,PNG,PDF", maxSizeMb: 5 },
+  { documentTypeId: 6, documentName: "Additional Document",isRequired: false, allowedFormats: "JPG,PNG,PDF", maxSizeMb: 5 },
+];
+
 function DocumentUpload() {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const location  = useLocation();
+  const navigate  = useNavigate();
 
-  // applicationId passed via navigation state from NewApplication
-  // Falls back to localStorage as a safety net
   const applicationId = location.state?.applicationId || localStorage.getItem("lastApplicationId");
-  const userId = localStorage.getItem("userId");
+  const userId        = localStorage.getItem("userId");
 
-  const [documents, setDocuments] = useState({
-    cnicFront: null,
-    cnicBack: null,
-    applicantPhoto: null,
-    salarySlip: null,
-    bankStatement: null,
-    additionalDocument: null,
-  });
+  // Use product-specific docs from navigation state, or fetch, or fall back to defaults
+  const [docSlots, setDocSlots] = useState(location.state?.requiredDocs || []);
 
-  const [errors, setErrors] = useState({});
+  useEffect(() => {
+    if (docSlots.length > 0) return; // already have them
+
+    // Try to fetch from API using lastApplicationId's product
+    // Fall back to defaults
+    setDocSlots(DEFAULT_DOCS);
+  }, []);
+
+  const [files,     setFiles]     = useState({});
+  const [errors,    setErrors]    = useState({});
   const [uploading, setUploading] = useState(false);
+  const [uploadedIds, setUploadedIds] = useState(new Set());
 
   const allowedTypes = ["application/pdf", "image/png", "image/jpeg", "image/jpg"];
-  const maxSize = 5 * 1024 * 1024;
+  const maxSize      = 5 * 1024 * 1024;
 
-  const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    if (!files.length) return;
-    const file = files[0];
+  const handleFileChange = (e, typeId) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
     let error = "";
     if (!allowedTypes.includes(file.type)) {
       error = "Only PDF, JPG, JPEG and PNG files are allowed.";
     } else if (file.size > maxSize) {
-      error = "Maximum file size is 5 MB.";
+      error = "Maximum file size is 5MB.";
     }
-    setErrors((prev) => ({ ...prev, [name]: error }));
+
+    setErrors((prev) => ({ ...prev, [typeId]: error }));
     if (!error) {
-      setDocuments((prev) => ({ ...prev, [name]: file }));
+      setFiles((prev) => ({ ...prev, [typeId]: file }));
     }
   };
 
-  const removeFile = (field) => {
-    setDocuments((prev) => ({ ...prev, [field]: null }));
-    setErrors((prev) => ({ ...prev, [field]: "" }));
+  const removeFile = (typeId) => {
+    setFiles((prev) => { const n = { ...prev }; delete n[typeId]; return n; });
+    setErrors((prev) => { const n = { ...prev }; delete n[typeId]; return n; });
   };
 
-  const uploadDocuments = async () => {
+  const handleUpload = async () => {
     if (!applicationId) {
-      alert("No application selected. Please create an application first.");
+      alert("No application selected. Please create one first.");
       navigate("/new-application");
       return;
     }
 
-    if (!documents.cnicFront || !documents.cnicBack || !documents.applicantPhoto) {
-      alert("Please upload CNIC Front, CNIC Back and Applicant Photo (required).");
+    // Check required docs
+    const missing = docSlots
+      .filter((d) => d.isRequired && !files[d.documentTypeId])
+      .map((d) => d.documentName);
+
+    if (missing.length > 0) {
+      alert(`Please upload required documents:\n• ${missing.join("\n• ")}`);
       return;
     }
 
-    const documentList = [
-      { file: documents.cnicFront,         typeId: 1 },
-      { file: documents.cnicBack,          typeId: 2 },
-      { file: documents.applicantPhoto,    typeId: 3 },
-      { file: documents.salarySlip,        typeId: 4 },
-      { file: documents.bankStatement,     typeId: 5 },
-      { file: documents.additionalDocument,typeId: 6 },
-    ];
-
     setUploading(true);
-    try {
-      for (const doc of documentList) {
-        if (!doc.file) continue;
+    const uploaded = new Set();
+    let failed = [];
+
+    for (const slot of docSlots) {
+      const file = files[slot.documentTypeId];
+      if (!file) continue;
+
+      try {
         const formData = new FormData();
         formData.append("applicationId", applicationId);
         formData.append("userId", userId);
-        formData.append("documentTypeId", doc.typeId);
-        formData.append("file", doc.file);
+        formData.append("documentTypeId", slot.documentTypeId);
+        formData.append("file", file);
+
         await axios.post("http://localhost:8080/api/documents/upload", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
+
+        uploaded.add(slot.documentTypeId);
+        setUploadedIds(new Set(uploaded));
+      } catch (err) {
+        const msg = err.response?.data || "Upload failed";
+        failed.push(`${slot.documentName}: ${msg}`);
       }
-      alert("Documents uploaded successfully!");
+    }
+
+    setUploading(false);
+
+    if (failed.length > 0) {
+      alert(`Some uploads failed:\n• ${failed.join("\n• ")}`);
+    } else {
+      alert("All documents uploaded successfully!");
       navigate("/applications");
-    } catch (error) {
-      console.error(error);
-      console.log("Error response:", error.response);
-      console.log("Error response data:", error.response?.data);
-      const msg = typeof error.response?.data === "string" && error.response.data.length > 0
-        ? error.response.data
-        : error.response?.data?.message
-        || "Upload failed. Please try again.";
-      alert(msg);
-    } finally {
-      setUploading(false);
     }
   };
-
-  const renderUploadCard = (label, name, required = false) => (
-    <div className="upload-card" key={name}>
-      <h3>
-        {label}
-        {required && <span className="required"> *</span>}
-      </h3>
-      <input type="file" id={name} name={name} hidden onChange={handleFileChange} />
-      {!documents[name] ? (
-        <label htmlFor={name} className="upload-box">
-          <div className="upload-icon">⬆</div>
-          <p>Click to Upload</p>
-          <span>PDF / JPG / PNG · max 5MB</span>
-        </label>
-      ) : (
-        <div className="file-preview">
-          <p>{documents[name].name}</p>
-          <small>{(documents[name].size / 1024).toFixed(1)} KB</small>
-          <button type="button" onClick={() => removeFile(name)}>Remove</button>
-        </div>
-      )}
-      {errors[name] && <div className="upload-error">{errors[name]}</div>}
-    </div>
-  );
 
   return (
     <div className="document-page">
       <div className="page-title">
-        <h1>Document Upload</h1>
+        <h1>Upload Documents</h1>
         <p>
           Upload required documents for your application.
           {applicationId
-            ? <strong> Application ID: {applicationId}</strong>
+            ? <> Application ID: <strong>{applicationId}</strong></>
             : <span style={{ color: "#ef4444" }}> No application selected.</span>
           }
         </p>
       </div>
 
       <div className="upload-grid">
-        {renderUploadCard("CNIC Front", "cnicFront", true)}
-        {renderUploadCard("CNIC Back", "cnicBack", true)}
-        {renderUploadCard("Applicant Photograph", "applicantPhoto", true)}
-        {renderUploadCard("Salary Slip", "salarySlip")}
-        {renderUploadCard("Bank Statement", "bankStatement")}
-        {renderUploadCard("Additional Document", "additionalDocument")}
+        {docSlots.map((slot) => {
+          const typeId  = slot.documentTypeId;
+          const file    = files[typeId];
+          const error   = errors[typeId];
+          const done    = uploadedIds.has(typeId);
+
+          return (
+            <div
+              className="upload-card"
+              key={typeId}
+              style={done ? { borderColor: "#16a34a", background: "#f0fdf4" } : {}}
+            >
+              <h3>
+                {slot.documentName}
+                {slot.isRequired && <span className="required"> *</span>}
+                {done && <CheckCircle size={14} color="#16a34a" style={{ marginLeft: "6px" }} />}
+              </h3>
+              <p style={{ fontSize: "12px", color: "#94a3b8", margin: "0 0 8px" }}>
+                {slot.allowedFormats} · max {slot.maxSizeMb}MB
+              </p>
+
+              <input
+                type="file"
+                id={`file-${typeId}`}
+                hidden
+                onChange={(e) => handleFileChange(e, typeId)}
+                accept=".pdf,.jpg,.jpeg,.png"
+              />
+
+              {!file ? (
+                <label htmlFor={`file-${typeId}`} className="upload-box">
+                  <UploadCloud size={28} style={{ color: "#94a3b8", marginBottom: "6px" }} />
+                  <p>Click to Upload</p>
+                  <span>{slot.allowedFormats} · max {slot.maxSizeMb}MB</span>
+                </label>
+              ) : (
+                <div className="file-preview">
+                  <FileText size={16} color="#3b82f6" />
+                  <div style={{ flex: 1 }}>
+                    <p>{file.name}</p>
+                    <small>{(file.size / 1024).toFixed(1)} KB</small>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeFile(typeId)}
+                    style={{ background: "none", border: "none", cursor: "pointer" }}
+                  >
+                    <XCircle size={16} color="#ef4444" />
+                  </button>
+                </div>
+              )}
+
+              {error && <div className="upload-error">{error}</div>}
+            </div>
+          );
+        })}
       </div>
 
       <div className="bottom-buttons">
         <button className="previous-btn" onClick={() => navigate(-1)}>
           Back
         </button>
-        <button className="next-btn" onClick={uploadDocuments} disabled={uploading}>
+        <button
+          className="next-btn"
+          onClick={handleUpload}
+          disabled={uploading}
+        >
           {uploading ? "Uploading..." : "Upload & Continue"}
         </button>
       </div>

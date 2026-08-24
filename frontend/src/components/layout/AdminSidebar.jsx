@@ -15,6 +15,7 @@ import {
 const adminMenuItems = [
   { name: "Dashboard",           path: "/admin/dashboard",   icon: LayoutDashboard },
   { name: "Application Review",  path: "/admin/applications",icon: ClipboardCheck },
+  { name: "SLA Management",      path: "/admin/sla",         icon: CalendarDays },
   { name: "Manage Users",        path: "/admin/users",       icon: Users },
   { name: "Reports",             path: "/admin/reports",     icon: FileText },
   { name: "Audit Logs",          path: "/admin/audit-logs",  icon: CalendarDays },

@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
+} from "recharts";
 
 import {
   Users,
@@ -25,6 +29,9 @@ function AdminDashboard() {
     rejectedApplications: 0,
     recentApplications: [],
     recentActivities: [],
+    monthlyApplications: [],
+    statusBreakdown: [],
+    productBreakdown: [],
   });
 
   const [recentApplications, setRecentApplications] = useState([]);
@@ -312,8 +319,90 @@ function AdminDashboard() {
         </div>
       </div>
 
+      {/* Charts Section */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginTop: "20px" }}>
+
+        {/* Bar Chart — Monthly Applications */}
+        <div style={{ background: "#fff", borderRadius: "14px", padding: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+          <h3 style={{ margin: "0 0 16px", fontSize: "15px", fontWeight: 600, color: "#1e293b" }}>
+            Monthly Applications (Last 6 Months)
+          </h3>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={dashboard.monthlyApplications || []} margin={{ top: 4, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94a3b8" }} />
+              <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "13px" }}
+                formatter={(v) => [v, "Applications"]}
+              />
+              <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Pie Chart — Status Breakdown */}
+        <div style={{ background: "#fff", borderRadius: "14px", padding: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+          <h3 style={{ margin: "0 0 16px", fontSize: "15px", fontWeight: 600, color: "#1e293b" }}>
+            Application Status Breakdown
+          </h3>
+          <ResponsiveContainer width="100%" height={220}>
+            <PieChart>
+              <Pie
+                data={dashboard.statusBreakdown || []}
+                dataKey="count"
+                nameKey="status"
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                label={({ status, percent }) => `${status} ${(percent * 100).toFixed(0)}%`}
+                labelLine={false}
+              >
+                {(dashboard.statusBreakdown || []).map((entry, index) => (
+                  <Cell
+                    key={index}
+                    fill={
+                      entry.status === "Approved" ? "#16a34a"
+                      : entry.status === "Rejected" ? "#dc2626"
+                      : entry.status === "Under Review" ? "#2563eb"
+                      : entry.status === "Submitted" ? "#d97706"
+                      : "#94a3b8"
+                    }
+                  />
+                ))}
+              </Pie>
+              <Tooltip formatter={(v, n) => [v, n]} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Bar Chart — Applications per Product */}
+        <div style={{ background: "#fff", borderRadius: "14px", padding: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", gridColumn: "1 / -1" }}>
+          <h3 style={{ margin: "0 0 16px", fontSize: "15px", fontWeight: 600, color: "#1e293b" }}>
+            Applications by Product
+          </h3>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={dashboard.productBreakdown || []} margin={{ top: 4, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis dataKey="product" tick={{ fontSize: 12, fill: "#64748b" }} />
+              <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} allowDecimals={false} />
+              <Tooltip
+                contentStyle={{ borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "13px" }}
+                formatter={(v) => [v, "Applications"]}
+              />
+              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                {(dashboard.productBreakdown || []).map((_, index) => (
+                  <Cell key={index} fill={["#3b82f6", "#8b5cf6", "#06b6d4"][index % 3]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+      </div>
+
       {/* Bottom Summary */}
-      <div className="summary-card">
+      <div className="summary-card" style={{ marginTop: "20px" }}>
         <div>
           <h2>Performance Summary</h2>
           <p>

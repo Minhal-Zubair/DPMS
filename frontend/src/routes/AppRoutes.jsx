@@ -26,6 +26,7 @@ import Settings from "../pages/settings/Settings";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import ManageUsers from "../pages/admin/ManageUsers";
 import Reports from "../pages/admin/Reports";
+import SLAManagement from "../pages/admin/SLAManagement";
 import AuditLogs from "../pages/admin/AuditLogs";
 import SystemSettings from "../pages/admin/SystemSettings";
 import ApplicationReview from "../pages/admin/ApplicationReview";
@@ -113,6 +114,7 @@ function AppRoutes() {
           <Route path="reports" element={<Reports />} />
 
           <Route path="audit-logs" element={<AuditLogs />} />
+          <Route path="sla" element={<SLAManagement />} />
 
           <Route path="settings" element={<SystemSettings />} />
         </Route>

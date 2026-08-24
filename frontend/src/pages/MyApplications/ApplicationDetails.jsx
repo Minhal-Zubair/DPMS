@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { CheckCircle, XCircle, Clock } from "lucide-react";
 import "./ApplicationDetails.css";
 
 const PRODUCT_NAMES = {
@@ -167,7 +168,7 @@ function ApplicationDetails() {
                       background: doc.verified === true ? "#dcfce7" : doc.verified === false ? "#fee2e2" : "#f1f5f9",
                       color: doc.verified === true ? "#16a34a" : doc.verified === false ? "#dc2626" : "#64748b",
                     }}>
-                      {doc.verified === true ? "✓ Verified" : doc.verified === false ? "✗ Rejected" : "Pending"}
+                      {doc.verified === true ? <span style={{display:"inline-flex",alignItems:"center",gap:"4px"}}><CheckCircle size={12}/>Verified</span> : doc.verified === false ? <span style={{display:"inline-flex",alignItems:"center",gap:"4px"}}><XCircle size={12}/>Rejected</span> : <span style={{display:"inline-flex",alignItems:"center",gap:"4px"}}><Clock size={12}/>Pending</span>}
                     </span>
                   </td>
                   <td style={{ color: "#64748b", fontSize: "13px" }}>{doc.remarks || "-"}</td>

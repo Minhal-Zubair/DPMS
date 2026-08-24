@@ -9,6 +9,11 @@ public interface ApplicationService {
             ApplicationRequest request,
             Long userId
     );
+
+    Application saveDraft(
+            ApplicationRequest request,
+            Long userId
+    );
     List<Application> getUserApplications(
             Long userId
     );

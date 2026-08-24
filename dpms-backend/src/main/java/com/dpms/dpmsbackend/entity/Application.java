@@ -31,6 +31,12 @@ public class Application {
     private String remarks;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @Column(name = "sla_days")
+    private Integer slaDays;
+
+    @Column(name = "sla_deadline")
+    private LocalDateTime slaDeadline;
     public enum Status{
         Draft,
         Submitted,

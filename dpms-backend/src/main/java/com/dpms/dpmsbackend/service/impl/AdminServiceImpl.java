@@ -7,17 +7,16 @@ import com.dpms.dpmsbackend.repository.ApplicationRepository;
 import com.dpms.dpmsbackend.repository.UserRepository;
 import com.dpms.dpmsbackend.service.AdminService;
 import com.dpms.dpmsbackend.service.AdminActivityService;
-
 import com.dpms.dpmsbackend.dto.AdminRecentApplicationDTO;
 import com.dpms.dpmsbackend.entity.Product;
 import com.dpms.dpmsbackend.entity.User;
 import com.dpms.dpmsbackend.repository.ProductRepository;
-
 import java.util.ArrayList;
 import java.time.format.DateTimeFormatter;
-
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 
@@ -169,12 +168,67 @@ public class AdminServiceImpl
                 adminActivityService.getRecentActivities()
         );
 
+        // ── Chart 1: Monthly applications (last 6 months) ──
+        List<Application> allApps = applicationRepository.findAll();
+        DateTimeFormatter monthFmt = DateTimeFormatter.ofPattern("MMM yyyy");
+        Map<String, Long> monthMap = new LinkedHashMap<>();
 
+        // Initialize last 6 months
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        for (int i = 5; i >= 0; i--) {
+            monthMap.put(now.minusMonths(i).format(monthFmt), 0L);
+        }
+
+        for (Application app : allApps) {
+            if (app.getCreatedAt() == null) continue;
+            String month = app.getCreatedAt().format(monthFmt);
+            if (monthMap.containsKey(month)) {
+                monthMap.put(month, monthMap.get(month) + 1);
+            }
+        }
+
+        List<Map<String, Object>> monthlyData = new ArrayList<>();
+        monthMap.forEach((month, count) -> {
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("month", month);
+            entry.put("count", count);
+            monthlyData.add(entry);
+        });
+        dto.setMonthlyApplications(monthlyData);
+
+        // ── Chart 2: Status breakdown ──
+        Map<String, Long> statusCount = new LinkedHashMap<>();
+        statusCount.put("Submitted", applicationRepository.countByStatus(Application.Status.Submitted));
+        statusCount.put("Under Review", applicationRepository.countByStatus(Application.Status.Under_Review));
+        statusCount.put("Approved", applicationRepository.countByStatus(Application.Status.Approved));
+        statusCount.put("Rejected", applicationRepository.countByStatus(Application.Status.Rejected));
+        statusCount.put("Draft", applicationRepository.countByStatus(Application.Status.Draft));
+
+        List<Map<String, Object>> statusData = new ArrayList<>();
+        statusCount.forEach((status, count) -> {
+            if (count > 0) {
+                Map<String, Object> entry = new HashMap<>();
+                entry.put("status", status);
+                entry.put("count", count);
+                statusData.add(entry);
+            }
+        });
+        dto.setStatusBreakdown(statusData);
+
+        // ── Chart 3: Applications per product ──
+        List<Product> products = productRepository.findAll();
+        List<Map<String, Object>> productData = new ArrayList<>();
+        for (Product product : products) {
+            long count = allApps.stream()
+                    .filter(a -> product.getId().equals(a.getProductId()))
+                    .count();
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("product", product.getProductName());
+            entry.put("count", count);
+            productData.add(entry);
+        }
+        dto.setProductBreakdown(productData);
 
         return dto;
-
-
     }
-
-
 }

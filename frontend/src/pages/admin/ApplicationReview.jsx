@@ -8,7 +8,12 @@ import {
   Pencil,
   FileText,
   ShieldCheck,
-  ShieldX
+  ShieldX,
+  AlertTriangle,
+  Bot,
+  CheckCheck,
+  Upload,
+  AlertCircle
 } from "lucide-react";
 
 import {
@@ -54,6 +59,8 @@ const ApplicationReview = () => {
   const [docsLoading, setDocsLoading] = useState(false);
   const [rejectRemarks, setRejectRemarks] = useState({});
   const [verifying, setVerifying] = useState({});
+  const [analyzing, setAnalyzing] = useState({});
+  const [extractions, setExtractions] = useState({});
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
 
   const handleUpdateApplication = async () => {
@@ -74,6 +81,22 @@ const ApplicationReview = () => {
     setUpdating(false);
   }
 };
+
+  const handleAnalyze = async (docId) => {
+    setAnalyzing((prev) => ({ ...prev, [docId]: true }));
+    try {
+      const res = await axios.post(
+        `http://localhost:8080/api/documents/${docId}/analyze`
+      );
+      setExtractions((prev) => ({ ...prev, [docId]: res.data }));
+      showMessage("AI analysis complete!", "success");
+    } catch (err) {
+      console.error(err);
+      showMessage("AI analysis failed.", "error");
+    } finally {
+      setAnalyzing((prev) => ({ ...prev, [docId]: false }));
+    }
+  };
 
   const fetchDocuments = async (applicationId) => {
     setDocsLoading(true);
@@ -498,7 +521,7 @@ const ApplicationReview = () => {
               color: showOverdueOnly ? "#dc2626" : "#64748b",
             }}
           >
-            🔴 Overdue ({applications.filter((a) => a.overdue).length})
+            <AlertCircle size={14} style={{marginRight:"4px"}}/> Overdue ({applications.filter((a) => a.overdue).length})
           </button>
         </div>
 
@@ -605,7 +628,7 @@ const ApplicationReview = () => {
                           background: app.overdue ? "#fee2e2" : app.daysInProgress > 3 ? "#fef3c7" : "#f0fdf4",
                           color: app.overdue ? "#dc2626" : app.daysInProgress > 3 ? "#d97706" : "#16a34a",
                         }}>
-                        {app.daysInProgress ?? 0}d {app.overdue ? "⚠ Overdue" : ""}
+                        {app.daysInProgress ?? 0}d {app.overdue ? <span style={{display:"inline-flex",alignItems:"center",gap:"2px"}}><AlertTriangle size={12}/> Overdue</span> : ""}
                         </span>
                       </td>
 
@@ -814,7 +837,7 @@ const ApplicationReview = () => {
                           background: doc.verified === true ? "#dcfce7" : doc.verified === false ? "#fee2e2" : "#f1f5f9",
                           color: doc.verified === true ? "#16a34a" : doc.verified === false ? "#dc2626" : "#64748b"
                         }}>
-                          {doc.verified === true ? "✓ Verified" : doc.verified === false ? "✗ Rejected" : "Pending"}
+                          {doc.verified === true ? <span style={{display:"inline-flex",alignItems:"center",gap:"4px"}}><CheckCircle size={12}/>Verified</span> : doc.verified === false ? <span style={{display:"inline-flex",alignItems:"center",gap:"4px"}}><XCircle size={12}/>Rejected</span> : "Pending"}
                         </span>
                       </div>
 
@@ -838,15 +861,47 @@ const ApplicationReview = () => {
                             onClick={() => handleVerify(doc.id, true)}
                             style={{ padding: "7px 14px", borderRadius: "6px", background: "#dcfce7", color: "#16a34a", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px" }}
                           >
-                            ✓ Verify
+                            <CheckCircle size={14}/> Verify
                           </button>
                           <button
                             disabled={verifying[doc.id]}
                             onClick={() => handleVerify(doc.id, false)}
                             style={{ padding: "7px 14px", borderRadius: "6px", background: "#fee2e2", color: "#dc2626", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px" }}
                           >
-                            ✗ Reject
+                            <XCircle size={14}/> Reject
                           </button>
+                        </div>
+                      )}
+
+                      {/* AI Analyze Button */}
+                      <div style={{ marginTop: "8px" }}>
+                        <button
+                          disabled={analyzing[doc.id]}
+                          onClick={() => handleAnalyze(doc.id)}
+                          style={{ padding: "6px 14px", borderRadius: "6px", background: "#ede9fe", color: "#7c3aed", border: "none", cursor: "pointer", fontWeight: 600, fontSize: "13px" }}
+                        >
+                          {analyzing[doc.id] ? <><Bot size={14}/> Analyzing...</> : <><Bot size={14}/> AI Analyze</>}
+                        </button>
+                      </div>
+
+                      {/* Extraction Result */}
+                      {extractions[doc.id] && (
+                        <div style={{ marginTop: "10px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "12px", fontSize: "13px" }}>
+                          <strong style={{ color: "#7c3aed", display:"flex", alignItems:"center", gap:"6px" }}><Bot size={16}/> AI Extraction Result</strong>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginTop: "8px" }}>
+                            <div><span style={{ color: "#64748b" }}>Type:</span> <strong>{extractions[doc.id].detectedType || "—"}</strong></div>
+                            <div><span style={{ color: "#64748b" }}>Status:</span> <strong>{extractions[doc.id].extractionStatus}</strong></div>
+                            <div><span style={{ color: "#64748b" }}>Name:</span> {extractions[doc.id].extractedName || "—"}</div>
+                            <div><span style={{ color: "#64748b" }}>CNIC:</span> {extractions[doc.id].extractedCnic || "—"}</div>
+                            <div><span style={{ color: "#64748b" }}>Date:</span> {extractions[doc.id].extractedDate || "—"}</div>
+                            <div><span style={{ color: "#64748b" }}>Salary:</span> {extractions[doc.id].extractedSalary || "—"}</div>
+                          </div>
+                          {extractions[doc.id].cnicMatch === true && (
+                            <div style={{ marginTop: "8px", color: "#16a34a", fontWeight: 600, display:"flex", alignItems:"center", gap:"6px" }}><CheckCheck size={16}/> CNIC matches application</div>
+                          )}
+                          {extractions[doc.id].cnicMatch === false && (
+                            <div style={{ marginTop: "8px", color: "#dc2626", fontWeight: 600, display:"flex", alignItems:"center", gap:"6px" }}><AlertTriangle size={16}/> {extractions[doc.id].mismatchReason}</div>
+                          )}
                         </div>
                       )}
 

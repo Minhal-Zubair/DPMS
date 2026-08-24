@@ -17,6 +17,15 @@ public class ApplicationController {
     public ApplicationController(ApplicationService service) {
         this.service = service;
     }
+    @PostMapping("/draft")
+    public ResponseEntity<Application> saveDraft(
+            @RequestBody ApplicationRequest request,
+            @RequestParam Long userId
+    ) {
+        Application saved = service.saveDraft(request, userId);
+        return ResponseEntity.ok(saved);
+    }
+
     @PostMapping
     public ResponseEntity<Application> create(
             @RequestBody ApplicationRequest request,

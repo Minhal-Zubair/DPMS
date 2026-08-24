@@ -10,6 +10,7 @@ function MyApplications() {
   const userId = localStorage.getItem("userId");
 
   const [applications, setApplications] = useState([]);
+  const [products, setProducts] = useState({});
 
   useEffect(() => {
     const loadApplications = async () => {
@@ -27,19 +28,23 @@ function MyApplications() {
     }
   }, [userId]);
 
-  const getProductName = (id) => {
-    switch (id) {
-      case 1:
-        return "AGAC";
+  useEffect(() => {
+    import("../../api/axiosConfig").then(({ default: API }) => {
+      API.get("/products").then((res) => {
+        const map = {};
+        res.data.forEach((p) => { map[p.id] = p.productName; });
+        setProducts(map);
+      }).catch(() => {});
+    });
+  }, []);
 
-      case 2:
-        return "DIG PERSONAL LOAN";
-
-      case 3:
-        return "ELECTRIC BIKE";
-
-      default:
-        return "Unknown";
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case "Approved": return { background: "#dcfce7", color: "#16a34a" };
+      case "Rejected": return { background: "#fee2e2", color: "#dc2626" };
+      case "Under_Review": return { background: "#dbeafe", color: "#2563eb" };
+      case "Draft": return { background: "#f1f5f9", color: "#64748b" };
+      default: return { background: "#fef3c7", color: "#d97706" };
     }
   };
 
@@ -81,7 +86,7 @@ function MyApplications() {
 
                   <td>{app.cnic}</td>
 
-                  <td>{getProductName(app.productId)}</td>
+                  <td>{products[app.productId] || app.productId || "—"}</td>
 
                   <td>
                     <span
@@ -154,7 +159,7 @@ function MyApplications() {
 
               <p>
                 <strong>Product:</strong>{" "}
-                {getProductName(selectedApplication.productId)}
+                {products[selectedApplication.productId] || selectedApplication.productId || "—"}
               </p>
 
               <p>

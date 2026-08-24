@@ -98,15 +98,29 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     }
 
-
+    @Override
+    public Application saveDraft(ApplicationRequest request, Long userId) {
+        Application application = new Application();
+        application.setApplicationNumber("APP-" + System.currentTimeMillis());
+        application.setUserId(userId);
+        if (request.getCnic() != null)
+            application.setCnic(request.getCnic().replaceAll("-", ""));
+        if (request.getProductionDate() != null)
+            application.setProductionDate(request.getProductionDate());
+        if (request.getProductId() != null)
+            application.setProductId(request.getProductId());
+        application.setRemarks(request.getRemarks());
+        application.setStatus(Application.Status.Draft);
+        Application saved = repository.save(application);
+        activityLogService.log("APPLICATION_DRAFT", "Application saved as draft", userId, saved.getId());
+        return saved;
+    }
 
     @Override
     public List<Application> getUserApplications(
             Long userId
     ){
-
         return repository.findByUserId(userId);
-
     }
 
     @Override
