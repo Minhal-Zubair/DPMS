@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, CheckCircle, Clock, Save } from "lucide-react";
+import { FileText, CheckCircle, Clock, Save, ArrowRight } from "lucide-react";
 import "./NewApplication.css";
 import API from "../../api/axiosConfig";
 
@@ -206,14 +206,14 @@ function NewApplication() {
           style={{ display: "flex", alignItems: "center", gap: "6px" }}
         >
           <Save size={16} />
-          {saving ? "Saving..." : draftSaved ? "Draft Saved ✓" : "Save Draft"}
+          {saving ? "Saving..." : draftSaved ? <span style={{display:"inline-flex",alignItems:"center",gap:"6px"}}><CheckCircle size={15}/>Draft Saved</span> : "Save Draft"}
         </button>
         <button
           className="submit-btn"
           onClick={handleSubmit}
           disabled={submitting}
         >
-          {submitting ? "Submitting..." : "Submit Application →"}
+          {submitting ? "Submitting..." : <span style={{display:"inline-flex",alignItems:"center",gap:"6px"}}>Submit Application<ArrowRight size={15}/></span>}
         </button>
       </div>
     </div>

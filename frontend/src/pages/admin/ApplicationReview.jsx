@@ -13,7 +13,11 @@ import {
   Bot,
   CheckCheck,
   Upload,
-  AlertCircle
+  AlertCircle,
+  Zap,
+  ClipboardList,
+  RotateCcw,
+  Send
 } from "lucide-react";
 
 import {
@@ -61,7 +65,14 @@ const ApplicationReview = () => {
   const [verifying, setVerifying] = useState({});
   const [analyzing, setAnalyzing] = useState({});
   const [extractions, setExtractions] = useState({});
+  const [riskData, setRiskData] = useState({});
+  const [reviewerNotes, setReviewerNotes] = useState({});
+  const [correctionText, setCorrectionText] = useState({});
+  const [savingNotes, setSavingNotes] = useState({});
+  const [requestingCorrection, setRequestingCorrection] = useState({});
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const handleUpdateApplication = async () => {
   try {
@@ -95,6 +106,47 @@ const ApplicationReview = () => {
       showMessage("AI analysis failed.", "error");
     } finally {
       setAnalyzing((prev) => ({ ...prev, [docId]: false }));
+    }
+  };
+
+  const fetchRisk = async (appId) => {
+    try {
+      const res = await axios.get(`http://localhost:8080/api/review/applications/${appId}/risk`);
+      setRiskData((prev) => ({ ...prev, [appId]: res.data }));
+    } catch (err) {
+      console.error("Risk fetch failed", err);
+    }
+  };
+
+  const handleSaveNotes = async (appId) => {
+    setSavingNotes((prev) => ({ ...prev, [appId]: true }));
+    try {
+      await axios.put(`http://localhost:8080/api/review/applications/${appId}/notes`, {
+        notes: reviewerNotes[appId] || ""
+      });
+      showMessage("Notes saved!", "success");
+    } catch (err) {
+      showMessage("Failed to save notes.", "error");
+    } finally {
+      setSavingNotes((prev) => ({ ...prev, [appId]: false }));
+    }
+  };
+
+  const handleRequestCorrection = async (appId) => {
+    const instructions = correctionText[appId];
+    if (!instructions?.trim()) { alert("Please enter correction instructions."); return; }
+    setRequestingCorrection((prev) => ({ ...prev, [appId]: true }));
+    try {
+      await axios.post(`http://localhost:8080/api/review/applications/${appId}/request-correction`, {
+        instructions
+      });
+      showMessage("Correction request sent to applicant!", "success");
+      setCorrectionText((prev) => ({ ...prev, [appId]: "" }));
+      await loadApplications();
+    } catch (err) {
+      showMessage("Failed to send correction request.", "error");
+    } finally {
+      setRequestingCorrection((prev) => ({ ...prev, [appId]: false }));
     }
   };
 
@@ -216,26 +268,16 @@ const ApplicationReview = () => {
   */
 
   const statusStyle = (status) => {
-
     switch (status) {
-
-      case "Approved":
-        return "status-approved";
-
-      case "Rejected":
-        return "status-rejected";
-
-      case "Submitted":
-        return "status-submitted";
-
+      case "Approved": return "status-approved";
+      case "Rejected": return "status-rejected";
+      case "Submitted": return "status-submitted";
       case "Under Review":
-      case "Under_Review":
-        return "status-review";
-
-      default:
-        return "status-pending";
+      case "Under_Review": return "status-review";
+      case "Correction Required":
+      case "Correction_Required": return "status-correction";
+      default: return "status-pending";
     }
-
   };
 
 
@@ -251,6 +293,11 @@ const ApplicationReview = () => {
       const response = await getApplication(id);
       setSelectedApplication(response.data);
       fetchDocuments(id);
+      fetchRisk(id);
+      // Pre-fill reviewer notes if exists
+      if (response.data.reviewerNotes) {
+        setReviewerNotes((prev) => ({ ...prev, [id]: response.data.reviewerNotes }));
+      }
     } catch (error) {
       console.error("VIEW ERROR:", error);
       showMessage("Unable to load details", "error");
@@ -387,6 +434,12 @@ const ApplicationReview = () => {
       return matchesSearch && matchesOverdue;
     });
 
+  const totalPages = Math.ceil(filteredApplications.length / PAGE_SIZE);
+  const paginatedApplications = filteredApplications.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
     /*
   ==========================================
   Dashboard Counts
@@ -504,7 +557,7 @@ const ApplicationReview = () => {
             placeholder="Search Application..."
             value={search}
             onChange={
-              (e) => setSearch(e.target.value)
+              (e) => { setSearch(e.target.value); setCurrentPage(1); }
             }
           />
           <button
@@ -555,7 +608,7 @@ const ApplicationReview = () => {
             {
               filteredApplications.length > 0 ?
                 (
-                  filteredApplications.map((app) => (
+                  paginatedApplications.map((app) => (
                     <tr
                       key={app.id}
                       className="border-b hover:bg-gray-50"
@@ -776,9 +829,86 @@ const ApplicationReview = () => {
 
           </tbody>
 
-
-
         </table>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "14px 20px", borderTop: "1px solid #f1f5f9"
+          }}>
+            <span style={{ fontSize: "13px", color: "#64748b" }}>
+              Showing {((currentPage - 1) * PAGE_SIZE) + 1}–{Math.min(currentPage * PAGE_SIZE, filteredApplications.length)} of {filteredApplications.length} applications
+            </span>
+            <div style={{ display: "flex", gap: "6px" }}>
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                style={{
+                  padding: "6px 10px", borderRadius: "6px", border: "1px solid #e2e8f0",
+                  background: currentPage === 1 ? "#f8fafc" : "#fff",
+                  color: currentPage === 1 ? "#cbd5e1" : "#475569",
+                  cursor: currentPage === 1 ? "default" : "pointer", fontSize: "13px"
+                }}
+              >«</button>
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                style={{
+                  padding: "6px 12px", borderRadius: "6px", border: "1px solid #e2e8f0",
+                  background: currentPage === 1 ? "#f8fafc" : "#fff",
+                  color: currentPage === 1 ? "#cbd5e1" : "#475569",
+                  cursor: currentPage === 1 ? "default" : "pointer", fontSize: "13px"
+                }}
+              >‹ Prev</button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                .reduce((acc, p, idx, arr) => {
+                  if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((p, idx) => p === "..." ? (
+                  <span key={`dot-${idx}`} style={{ padding: "6px 4px", color: "#94a3b8", fontSize: "13px" }}>…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setCurrentPage(p)}
+                    style={{
+                      padding: "6px 11px", borderRadius: "6px", fontSize: "13px",
+                      border: "1px solid",
+                      borderColor: currentPage === p ? "#3b82f6" : "#e2e8f0",
+                      background: currentPage === p ? "#3b82f6" : "#fff",
+                      color: currentPage === p ? "#fff" : "#475569",
+                      cursor: "pointer", fontWeight: currentPage === p ? 600 : 400
+                    }}
+                  >{p}</button>
+                ))}
+
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                style={{
+                  padding: "6px 12px", borderRadius: "6px", border: "1px solid #e2e8f0",
+                  background: currentPage === totalPages ? "#f8fafc" : "#fff",
+                  color: currentPage === totalPages ? "#cbd5e1" : "#475569",
+                  cursor: currentPage === totalPages ? "default" : "pointer", fontSize: "13px"
+                }}
+              >Next ›</button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                style={{
+                  padding: "6px 10px", borderRadius: "6px", border: "1px solid #e2e8f0",
+                  background: currentPage === totalPages ? "#f8fafc" : "#fff",
+                  color: currentPage === totalPages ? "#cbd5e1" : "#475569",
+                  cursor: currentPage === totalPages ? "default" : "pointer", fontSize: "13px"
+                }}
+              >»</button>
+            </div>
+          </div>
+        )}
 
 
         {/* ===========================
@@ -917,13 +1047,95 @@ const ApplicationReview = () => {
                   ))}
                 </div>
 
+                {/* ── Risk Score Panel ── */}
+                {riskData[selectedApplication.id] && (() => {
+                  const risk = riskData[selectedApplication.id];
+                  const color = risk.riskLevel === "HIGH" ? "#dc2626"
+                    : risk.riskLevel === "MEDIUM" ? "#d97706" : "#16a34a";
+                  const bg = risk.riskLevel === "HIGH" ? "#fef2f2"
+                    : risk.riskLevel === "MEDIUM" ? "#fffbeb" : "#f0fdf4";
+                  return (
+                    <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: "16px", marginTop: "16px" }}>
+                      <h3 style={{ marginBottom: "10px", display: "flex", alignItems: "center", gap: "8px", fontSize: "15px" }}>
+                        <span style={{display:"inline-flex",alignItems:"center",gap:"8px"}}><Zap size={16}/>Risk Assessment</span>
+                      </h3>
+                      <div style={{ background: bg, border: `1px solid ${color}30`, borderRadius: "10px", padding: "14px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
+                          <div style={{ fontSize: "28px", fontWeight: 700, color }}>{risk.riskScore}</div>
+                          <div>
+                            <div style={{ fontWeight: 600, color, fontSize: "14px" }}>{risk.riskLevel} RISK</div>
+                            <div style={{ fontSize: "12px", color: "#64748b" }}>out of 100</div>
+                          </div>
+                          <div style={{ flex: 1, background: "#e2e8f0", borderRadius: "10px", height: "8px", overflow: "hidden" }}>
+                            <div style={{ width: `${risk.riskScore}%`, height: "100%", background: color, borderRadius: "10px", transition: "width 0.5s" }} />
+                          </div>
+                        </div>
+                        {risk.riskFactors?.length > 0 && (
+                          <div>
+                            <div style={{ fontSize: "12px", fontWeight: 600, color: "#64748b", marginBottom: "6px" }}>RISK FACTORS:</div>
+                            {risk.riskFactors.map((f, i) => (
+                              <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color, marginBottom: "4px" }}>
+                                <AlertTriangle size={13} style={{flexShrink:0}}/> {f}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {risk.riskFactors?.length === 0 && (
+                          <div style={{ fontSize: "13px", color: "#16a34a", display:"flex", alignItems:"center", gap:"6px" }}><CheckCircle size={14}/>No risk factors detected</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* ── Reviewer Notes ── */}
+                <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: "16px", marginTop: "16px" }}>
+                  <h3 style={{ marginBottom: "10px", fontSize: "15px", display:"flex", alignItems:"center", gap:"8px" }}><ClipboardList size={16}/>Reviewer Notes</h3>
+                  <textarea
+                    rows={3}
+                    placeholder="Add internal reviewer notes (not visible to applicant)..."
+                    value={reviewerNotes[selectedApplication.id] || ""}
+                    onChange={(e) => setReviewerNotes((prev) => ({ ...prev, [selectedApplication.id]: e.target.value }))}
+                    style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "13px", resize: "vertical", boxSizing: "border-box" }}
+                  />
+                  <button
+                    onClick={() => handleSaveNotes(selectedApplication.id)}
+                    disabled={savingNotes[selectedApplication.id]}
+                    style={{ marginTop: "8px", padding: "7px 16px", borderRadius: "8px", background: "#3b82f6", color: "#fff", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}
+                  >
+                    {savingNotes[selectedApplication.id] ? "Saving..." : "Save Notes"}
+                  </button>
+                </div>
+
+                {/* ── Request Correction ── */}
+                <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: "16px", marginTop: "16px" }}>
+                  <h3 style={{ marginBottom: "10px", fontSize: "15px", display:"flex", alignItems:"center", gap:"8px" }}><RotateCcw size={16}/>Request Correction</h3>
+                  <p style={{ fontSize: "13px", color: "#64748b", marginBottom: "10px" }}>
+                    Send correction instructions to the applicant. They will receive an email and the application status will change to "Correction Required".
+                  </p>
+                  <textarea
+                    rows={3}
+                    placeholder="Describe what needs to be corrected or resubmitted..."
+                    value={correctionText[selectedApplication.id] || ""}
+                    onChange={(e) => setCorrectionText((prev) => ({ ...prev, [selectedApplication.id]: e.target.value }))}
+                    style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #fde68a", fontSize: "13px", resize: "vertical", boxSizing: "border-box", background: "#fffbeb" }}
+                  />
+                  <button
+                    onClick={() => handleRequestCorrection(selectedApplication.id)}
+                    disabled={requestingCorrection[selectedApplication.id]}
+                    style={{ marginTop: "8px", padding: "7px 16px", borderRadius: "8px", background: "#d97706", color: "#fff", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}
+                  >
+                    {requestingCorrection[selectedApplication.id] ? "Sending..." : <span style={{display:"inline-flex",alignItems:"center",gap:"6px"}}><Send size={14}/>Send Correction Request</span>}
+                  </button>
+                </div>
+
                 <button
                   className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  style={{ marginTop: "16px" }}
                   onClick={() => { setSelectedApplication(null); setDocuments([]); }}
                 >
                   Close
-                </button>
-              </div>
+                </button>              </div>
             </div>
           )
         }

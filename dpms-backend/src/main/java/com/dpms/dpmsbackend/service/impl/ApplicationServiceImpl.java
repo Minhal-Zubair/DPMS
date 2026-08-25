@@ -7,6 +7,7 @@ import com.dpms.dpmsbackend.entity.User;
 import com.dpms.dpmsbackend.repository.ApplicationRepository;
 import com.dpms.dpmsbackend.service.ActivityLogService;
 import com.dpms.dpmsbackend.service.ApplicationLogService;
+import com.dpms.dpmsbackend.service.EmailService;
 import com.dpms.dpmsbackend.service.ApplicationService;
 import com.dpms.dpmsbackend.repository.UserRepository;
 import com.dpms.dpmsbackend.repository.ProductRepository;
@@ -26,19 +27,22 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final ProductRepository productRepository;
     private final ApplicationLogService logService;
     private final ActivityLogService activityLogService;
+    private final EmailService emailService;
 
     public ApplicationServiceImpl(
             ApplicationRepository repository,
             UserRepository userRepository,
             ProductRepository productRepository,
             ApplicationLogService logService,
-            ActivityLogService activityLogService
+            ActivityLogService activityLogService,
+            EmailService emailService
     ){
         this.repository = repository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.logService = logService;
         this.activityLogService = activityLogService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -302,6 +306,30 @@ public class ApplicationServiceImpl implements ApplicationService {
                 null,
                 applicationId
         );
+
+        // Send email notification to applicant
+        if (application.getUserId() != null) {
+            userRepository.findById(application.getUserId()).ifPresent(user -> {
+                if (user.getEmail() != null && !user.getEmail().isBlank()) {
+                    String fullName = user.getFirstName() + " " + user.getLastName();
+                    if (newStatus == Application.Status.Approved) {
+                        emailService.sendApprovalEmail(
+                            user.getEmail(), fullName, application.getApplicationNumber()
+                        );
+                    } else if (newStatus == Application.Status.Rejected) {
+                        emailService.sendRejectionEmail(
+                            user.getEmail(), fullName, application.getApplicationNumber(),
+                            application.getRemarks()
+                        );
+                    } else {
+                        emailService.sendStatusChangeEmail(
+                            user.getEmail(), fullName, application.getApplicationNumber(),
+                            newStatus.name().replace("_", " ")
+                        );
+                    }
+                }
+            });
+        }
     }
     @Override
     public ApplicationDetailsDTO getApplication(Long id) {

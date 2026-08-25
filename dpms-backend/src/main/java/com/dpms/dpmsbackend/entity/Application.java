@@ -37,12 +37,26 @@ public class Application {
 
     @Column(name = "sla_deadline")
     private LocalDateTime slaDeadline;
+
+    @Column(name = "risk_score")
+    private Integer riskScore;
+
+    @Column(name = "reviewer_notes", columnDefinition = "TEXT")
+    private String reviewerNotes;
+
+    @Column(name = "correction_request", columnDefinition = "TEXT")
+    private String correctionRequest;
+
+    @Column(name = "correction_requested_at")
+    private LocalDateTime correctionRequestedAt;
+
     public enum Status{
         Draft,
         Submitted,
         Under_Review,
         Approved,
-        Rejected
+        Rejected,
+        Correction_Required
     }
 
 

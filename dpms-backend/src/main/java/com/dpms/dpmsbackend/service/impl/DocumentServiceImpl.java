@@ -2,8 +2,11 @@ package com.dpms.dpmsbackend.service.impl;
 
 import com.dpms.dpmsbackend.entity.Document;
 import com.dpms.dpmsbackend.repository.DocumentRepository;
+import com.dpms.dpmsbackend.repository.ApplicationRepository;
+import com.dpms.dpmsbackend.repository.UserRepository;
 import com.dpms.dpmsbackend.service.ActivityLogService;
 import com.dpms.dpmsbackend.service.DocumentService;
+import com.dpms.dpmsbackend.service.EmailService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,13 +20,22 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository repository;
     private final ActivityLogService activityLogService;
+    private final EmailService emailService;
+    private final ApplicationRepository applicationRepository;
+    private final UserRepository userRepository;
 
     public DocumentServiceImpl(
             DocumentRepository repository,
-            ActivityLogService activityLogService
+            ActivityLogService activityLogService,
+            EmailService emailService,
+            ApplicationRepository applicationRepository,
+            UserRepository userRepository
     ){
         this.repository = repository;
         this.activityLogService = activityLogService;
+        this.emailService = emailService;
+        this.applicationRepository = applicationRepository;
+        this.userRepository = userRepository;
     }
 
 
@@ -132,6 +144,29 @@ public class DocumentServiceImpl implements DocumentService {
                 doc.getUploadedBy(),
                 doc.getApplicationId()
         );
+
+        // Send email to applicant
+        if (doc.getApplicationId() != null) {
+            applicationRepository.findById(doc.getApplicationId()).ifPresent(app -> {
+                if (app.getUserId() != null) {
+                    userRepository.findById(app.getUserId()).ifPresent(user -> {
+                        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+                            String name = user.getFirstName() + " " + user.getLastName();
+                            String docName = "Document #" + doc.getDocumentTypeId();
+                            if (verified) {
+                                emailService.sendDocumentVerifiedEmail(
+                                    user.getEmail(), name, docName, app.getApplicationNumber()
+                                );
+                            } else {
+                                emailService.sendDocumentRejectedEmail(
+                                    user.getEmail(), name, docName, app.getApplicationNumber(), remarks
+                                );
+                            }
+                        }
+                    });
+                }
+            });
+        }
     }
 
 }

@@ -1,339 +1,293 @@
-import { NavLink, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { useTheme } from "../../context/ThemeContext";
 import {
-  LayoutDashboard,
-  FilePlus2,
-  FolderOpen,
-  Upload,
-  User,
-  KeyRound,
   Bell,
+  Search,
+  User,
   Settings,
   LogOut,
-  FileText,
+  ChevronDown,
   Moon,
   Sun,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../context/ThemeContext";
 
-const menuItems = [
-  {
-    name: "Dashboard",
-    path: "/user/dashboard",
-    icon: <LayoutDashboard size={20} />,
-  },
-  {
-    name: "New Application",
-    path: "/new-application",
-    icon: <FilePlus2 size={20} />,
-  },
-  {
-    name: "My Applications",
-    path: "/applications",
-    icon: <FolderOpen size={20} />,
-  },
-  {
-    name: "Upload Documents",
-    path: "/application/upload",
-    icon: <Upload size={20} />,
-  },
-  {
-    name: "Document Types",
-    path: "/application/document-types",
-    icon: <FileText size={20} />,
-  },
-  {
-    name: "Profile",
-    path: "/profile",
-    icon: <User size={20} />,
-  },
-  {
-    name: "Change Password",
-    path: "/change-password",
-    icon: <KeyRound size={20} />,
-  },
-  {
-    name: "Notifications",
-    path: "/notifications",
-    icon: <Bell size={20} />,
-    badge: true,
-  },
-  {
-    name: "Settings",
-    path: "/settings",
-    icon: <Settings size={20} />,
-  },
-];
+const username = localStorage.getItem("username") || "Guest";
 
-function Sidebar() {
+const firstName = localStorage.getItem("firstName");
+const lastName = localStorage.getItem("lastName");
+
+const displayName =
+  firstName && lastName ? `${firstName} ${lastName}` : username;
+
+function Navbar() {
+  const [showMenu, setShowMenu] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
 
-  const userId = localStorage.getItem("userId");
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+    axios.get(`http://localhost:8080/api/notifications/user/${userId}/count`)
+      .then(res => setNotificationCount(res.data))
+      .catch(() => setNotificationCount(0));
+
+    // Refresh every 30 seconds
+    const interval = setInterval(() => {
+      axios.get(`http://localhost:8080/api/notifications/user/${userId}/count`)
+        .then(res => setNotificationCount(res.data))
+        .catch(() => {});
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const { theme, toggleTheme } = useTheme();
+
   const navigate = useNavigate();
 
-  const {
-    theme,
-    toggleTheme
-  } = useTheme();
-
   const handleLogout = () => {
+    // Clear all login information
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("username");
     localStorage.removeItem("firstName");
     localStorage.removeItem("lastName");
-    localStorage.removeItem("role");
-    localStorage.removeItem("lastApplicationId");
+
+    // Or simply:
+    // localStorage.clear();
+
     navigate("/login", { replace: true });
   };
 
-  useEffect(() => {
-    const fetchNotificationCount = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:8080/api/notifications/user/${userId}/count`,
-        );
-
-        setNotificationCount(response.data);
-      } catch (error) {
-        console.log("Notification count error", error);
-      }
-    };
-
-    if (userId) {
-      fetchNotificationCount();
-
-      const interval = setInterval(fetchNotificationCount, 5000);
-
-      return () => clearInterval(interval);
-    }
-  }, [userId]);
-
   return (
-    <div style={styles.sidebar}>
-      {/* Logo */}
-
-      <div style={styles.logoSection}>
-        <div style={styles.logoCircle}>D</div>
-
-        <div>
-          <h2 style={styles.logo}>DPMS</h2>
-          <p style={styles.logoText}>Enterprise Suite</p>
+    <div style={styles.navbar}>
+      {/* Left Side */}
+      <div style={styles.left}>
+        <div style={styles.searchBox}>
+          <Search 
+size={18} 
+color="var(--text-secondary)" 
+/>
+          <input
+            type="text"
+            placeholder="Search applications, CNIC, users..."
+            style={styles.searchInput}
+          />
         </div>
       </div>
 
-      {/* Navigation */}
-
-      <div style={styles.menu}>
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.name}
-            to={item.path}
-            style={({ isActive }) => ({
-              ...styles.link,
-              ...(isActive ? styles.active : {}),
-            })}
-          >
-            {item.icon}
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                flex: 1,
-              }}
-            >
-              {item.name}
-
-              {item.name === "Notifications" && notificationCount > 0 && (
-                <span style={styles.notificationBadge}>{notificationCount}</span>
-              )}
-            </div>
-          </NavLink>
-        ))}
-      </div>
-
-      {/* Bottom */}
-
-      <div style={styles.bottomSection}>
+      {/* Right Side */}
+      <div style={styles.right}>
+        {/* Dark Mode */}
         <button
-          style={styles.themeButton}
-          onClick={toggleTheme}
-        >
-          {
-            theme === "light"
-              ?
-              <>
-                <Moon size={18} />
-                Dark Mode
-              </>
-              :
-              <>
-                <Sun size={18} />
-                Light Mode
-              </>
-          }
+style={styles.iconButton}
+onClick={toggleTheme}
+>
 
-        </button>
-
-
-
-        <button
-          style={styles.logout}
-          onClick={handleLogout}
-        >
-
-          <LogOut size={18} />
-
-          Logout
-
-        </button>
-        </div>
-      </div >
-      );
+{
+theme==="light"
+?
+<Moon size={20}/>
+:
+<Sun size={20}/>
 }
 
-      const styles = {
-        bottomSection:{
+</button>
 
-        display:"flex",
+        {/* Notifications */}
+        <div style={styles.notification}>
+          <Bell size={20} />
+          {notificationCount > 0 && (
+            <span style={styles.badge}>{notificationCount}</span>
+          )}
+        </div>
 
-      flexDirection:"column",
+        {/* User */}
+        <div style={styles.profile} onClick={() => setShowMenu(!showMenu)}>
+          <div style={styles.avatar}>{displayName.charAt(0).toUpperCase()}</div>
 
-      gap:12,
+          <div>
+            <div style={styles.userName}>{displayName}</div>
 
-},
-      sidebar: {
-        width: 260,
-      height: "100vh",
-      overflowY: "auto",
-      background:"var(--sidebar-bg)",
-      color:"var(--sidebar-text)",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "space-between",
-      position: "fixed",
-      left: 0,
-      top: 0,
-      padding: "25px 18px",
-      boxSizing: "border-box",
-      boxShadow: "var(--sidebar-shadow)",
+            <div style={styles.role}>User</div>
+          </div>
+
+          <ChevronDown size={18} />
+
+          {showMenu && (
+            <div style={styles.dropdown}>
+              <div style={styles.menuItem}>
+                <User size={18} />
+                My Profile
+              </div>
+
+              <div style={styles.menuItem}>
+                <Settings size={18} />
+                Settings
+              </div>
+
+              <div style={styles.divider}></div>
+
+              <div
+                style={{
+                  ...styles.menuItem,
+                  color: "#DC2626",
+                }}
+                onClick={handleLogout}
+              >
+                <LogOut size={18} />
+                Logout
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const styles = {
+  navbar: {
+    height: 75,
+    background:"var(--card-bg)",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "0 30px",
+    boxShadow: "0 2px 15px rgba(0,0,0,.06)",
+    position: "sticky",
+    top: 0,
+    zIndex: 100,
   },
 
-      logoSection: {
-        display: "flex",
-      alignItems: "center",
-      gap: 15,
-      marginBottom: 35,
+  left: {
+    flex: 1,
   },
 
-      logoCircle: {
-        width: 55,
-      height: 55,
-      borderRadius: "50%",
-      background: "linear-gradient(135deg,#1976D2,#00C6FF)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      fontWeight: "bold",
-      fontSize: 24,
+  searchBox: {
+    width: 400,
+    background:"var(--bg-primary)",
+    borderRadius: 12,
+    display: "flex",
+    alignItems: "center",
+    padding: "10px 15px",
+    gap: 10,
   },
 
-      logo: {
-        margin: 0,
-      fontSize: 24,
+  searchInput: {
+    border: "none",
+    outline: "none",
+    color:"var(--text-primary)",
+    background: "transparent",
+    width: "100%",
+    fontSize: 15,
   },
 
-      logoText: {
-        margin: 0,
-      color:"var(--text-secondary)",
-      fontSize: 13,
+  right: {
+    display: "flex",
+    alignItems: "center",
+    gap: 20,
   },
 
-      menu: {
-        display: "flex",
-      flexDirection: "column",
-      gap: 8,
-      flex: 1,
+  iconButton: {
+    width: 42,
+    height: 42,
+    borderRadius: "50%",
+    border: "none",
+    cursor: "pointer",
+    background:"var(--bg-primary)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
-
-
-      link: {
-        display: "flex",
-      alignItems: "center",
-      gap: 15,
-      padding: "14px 16px",
-      textDecoration: "none",
-      color:"var(--sidebar-text)",
-      borderRadius: 12,
-      transition: ".3s",
-      fontSize: 15,
-      fontWeight: 500,
+  notification: {
+    position: "relative",
+    cursor: "pointer",
+    width: 42,
+    height: 42,
+    borderRadius: "50%",
+    background:"var(--bg-primary)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
-      active: {
-        background: "linear-gradient(90deg,#1976D2,#00C6FF)",
-      color: "white",
-      boxShadow: "0 5px 15px rgba(25,118,210,.35)",
+  badge: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    width: 18,
+    height: 18,
+    borderRadius: "50%",
+    background: "#EF4444",
+    color: "#fff",
+    fontSize: 10,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    fontWeight: "bold",
   },
 
-      logout: {
-        border: "none",
-      borderRadius: 12,
-      padding: "15px",
-      background: "#DC2626",
-      color: "white",
-      cursor: "pointer",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 10,
-      fontSize: 15,
-      fontWeight: 600,
+  profile: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    cursor: "pointer",
+    position: "relative",
   },
 
-      themeButton:{
+  avatar: {
+    width: 45,
+    height: 45,
+    borderRadius: "50%",
+    background: "linear-gradient(135deg,#1976D2,#00C6FF)",
+    color: "#fff",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    fontWeight: "bold",
+    fontSize: 18,
+  },
 
-        border:"1px solid var(--border-color)",
+  userName: {
+    fontWeight: "600",
+    color:"var(--text-primary)",
+    fontSize: 15,
+  },
 
-      borderRadius:12,
+  role: {
+    color:"var(--text-secondary)",
+    fontSize: 12,
+  },
 
-      padding:"14px",
+  dropdown: {
+    position: "absolute",
+    right: 0,
+    top: 60,
+    width: 220,
+    background:"var(--card-bg)",
+    color:"var(--text-primary)",
+    border:"1px solid var(--border-color)",
+    borderRadius: 12,
+    boxShadow: "0 10px 30px rgba(0,0,0,.15)",
+    overflow: "hidden",
+    animation: "fade .25s ease",
+  },
 
-      background:"var(--card-bg)",
+  menuItem: {
+    display: "flex",
+    alignItems: "center",
+    color:"var(--text-primary)",
+    gap: 12,
+    padding: "14px 18px",
+    cursor: "pointer",
+    fontSize: 14,
+  },
 
-      color:"var(--text-primary)",
-
-      cursor:"pointer",
-
-      display:"flex",
-
-      alignItems:"center",
-
-      justifyContent:"center",
-
-      gap:10,
-
-      fontSize:15,
-
-      fontWeight:600,
-
-},
-      notificationBadge: {
-        background: "#dc2626",
-      color: "white",
-      fontSize: 12,
-      fontWeight: 600,
-      minWidth: 20,
-      height: 20,
-      borderRadius: "50%",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      marginLeft: "auto",
+  divider: {
+    borderTop:"1px solid var(--border-color)",
   },
 };
 
-      export default Sidebar;
+export default Navbar;

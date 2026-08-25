@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import API from "../../api/axiosConfig";
+import { FileText } from "lucide-react";
 
 function Login() {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ function Login() {
     <div style={styles.container}>
       <div style={styles.card}>
         <div style={{ textAlign: "center", marginBottom: "30px" }}>
-          <div style={{ fontSize: "55px", marginBottom: "10px" }}>📄</div>
+          <div style={{ marginBottom: "10px", display:"flex", justifyContent:"center" }}><FileText size={52} color="rgba(255,255,255,0.9)"/></div>
           <h1 style={{ color: "#fff", margin: 0, fontSize: "34px", letterSpacing: "1px" }}>
             DPMS
           </h1>

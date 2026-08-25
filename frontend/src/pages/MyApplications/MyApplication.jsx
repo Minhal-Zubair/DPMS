@@ -6,7 +6,8 @@ import "./MyApplications.css";
 function MyApplications() {
   const [selectedApplication, setSelectedApplication] = useState(null);
   const navigate = useNavigate();
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 8;
   const userId = localStorage.getItem("userId");
 
   const [applications, setApplications] = useState([]);
@@ -48,6 +49,9 @@ function MyApplications() {
     }
   };
 
+  const totalPages = Math.ceil(applications.length / PAGE_SIZE);
+  const paginated = applications.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   return (
     <div className="applications-page">
       <div className="page-header">
@@ -78,7 +82,7 @@ function MyApplications() {
                 <td colSpan="7">No Applications Found</td>
               </tr>
             ) : (
-              applications.map((app) => (
+              paginated.map((app) => (
                 <tr key={app.id}>
                   <td>{app.applicationNumber}</td>
 
@@ -134,6 +138,30 @@ function MyApplications() {
             )}
           </tbody>
         </table>
+
+        {totalPages > 1 && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderTop: "1px solid #f1f5f9" }}>
+            <span style={{ fontSize: "13px", color: "#64748b" }}>
+              Page {currentPage} of {totalPages} ({applications.length} total)
+            </span>
+            <div style={{ display: "flex", gap: "6px" }}>
+              <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
+                style={{ padding: "6px 14px", borderRadius: "6px", border: "1px solid #e2e8f0", background: currentPage === 1 ? "#f8fafc" : "#fff", color: currentPage === 1 ? "#cbd5e1" : "#475569", cursor: currentPage === 1 ? "default" : "pointer", fontSize: "13px" }}>
+                ‹ Prev
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                <button key={p} onClick={() => setCurrentPage(p)}
+                  style={{ padding: "6px 11px", borderRadius: "6px", fontSize: "13px", border: "1px solid", borderColor: currentPage === p ? "#3b82f6" : "#e2e8f0", background: currentPage === p ? "#3b82f6" : "#fff", color: currentPage === p ? "#fff" : "#475569", cursor: "pointer" }}>
+                  {p}
+                </button>
+              ))}
+              <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
+                style={{ padding: "6px 14px", borderRadius: "6px", border: "1px solid #e2e8f0", background: currentPage === totalPages ? "#f8fafc" : "#fff", color: currentPage === totalPages ? "#cbd5e1" : "#475569", cursor: currentPage === totalPages ? "default" : "pointer", fontSize: "13px" }}>
+                Next ›
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* APPLICATION DETAILS POPUP */}
